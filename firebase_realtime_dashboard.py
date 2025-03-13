@@ -12,8 +12,8 @@ import ipaddress
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-firebase_cert_path = os.environ.get("FIREBASE_CERT_PATH")
-firebase_db_url = os.environ.get("FIREBASE_DB_URL")
+firebase_cert_path = os.environ.get("FIREBASE_CERT_PATH") or st.secrets.get("FIREBASE_CERT_PATH")
+firebase_db_url = os.environ.get("FIREBASE_DB_URL") or st.secrets.get("FIREBASE_DB_URL")
 
 if not firebase_cert_path or not firebase_db_url:
     st.error("Firebase configuration is missing. Set FIREBASE_CERT_PATH and FIREBASE_DB_URL environment variables.")
