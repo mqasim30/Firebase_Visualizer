@@ -1,8 +1,10 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
+
 import firebase_admin
 from firebase_admin import credentials, db
 import pandas as pd
-import plotly.express as px
 import streamlit as st
 import logging
 from streamlit_autorefresh import st_autorefresh
@@ -10,7 +12,6 @@ import ipaddress
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Read the certificate path and database URL from environment variables
 firebase_cert_path = os.environ.get("FIREBASE_CERT_PATH")
 firebase_db_url = os.environ.get("FIREBASE_DB_URL")
 
@@ -39,24 +40,6 @@ def fetch_data(data_path):
         return data
     except Exception as e:
         logging.error("Error fetching data from %s: %s", data_path, e)
-        return None
-
-def create_chart(df):
-    try:
-        df["Install_time"] = pd.to_datetime(df["Install_time"], unit="ms")
-        numeric_fields = ["Wins", "Goal", "Impressions", "Ad_Revenue", "IAP", "Fraud_Score"]
-        available_metrics = [col for col in numeric_fields if col in df.columns]
-        if not available_metrics:
-            st.error("None of the expected numeric fields are present in PLAYERS data.")
-            return None
-        plot_df = df[["Install_time"] + available_metrics]
-        plot_df = plot_df.melt(id_vars=["Install_time"], value_vars=available_metrics,
-                               var_name="Metric", value_name="Value")
-        fig = px.line(plot_df, x="Install_time", y="Value", color="Metric",
-                      title="Player Metrics Over Time")
-        return fig
-    except Exception as e:
-        logging.error("Error creating chart: %s", e)
         return None
 
 def compute_stats(df):
@@ -123,8 +106,7 @@ def merge_on_common_ip(players_df, tracking_df):
         return pd.DataFrame()
 
 st.title("Realtime Firebase Data Dashboard (Admin Access)")
-st.write("This dashboard polls data from the PLAYERS and TRACKING branches using the Admin SDK and displays various statistics, charts, and tables.")
-st.write("Below you will see overall player statistics, IP statistics, source counts, tracking data, and a merged table of records with common IPs.")
+st.write("This dashboard polls data from the PLAYERS and TRACKING branches using the Admin SDK and displays various statistics, tables, and merged records.")
 
 st.header("PLAYERS Data")
 players_data_path = "PLAYERS"
@@ -190,11 +172,6 @@ else:
             st.dataframe(common_ip_df)
         else:
             st.write("No common IP addresses found within PLAYERS.")
-        fig = create_chart(players_df)
-        if fig:
-            st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.write("Unable to create chart for PLAYERS. Check that your data contains 'Install_time' and the required numeric fields.")
     else:
         st.write("No player records found in the PLAYERS branch.")
 
