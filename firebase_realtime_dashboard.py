@@ -11,46 +11,31 @@ import logging
 from streamlit_autorefresh import st_autorefresh
 import ipaddress
 
-# Set up logging to both console and Streamlit
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-st_logger = logging.getLogger("streamlit")
 
-# Load Firebase configuration from environment variables or Streamlit secrets
+# Use st.secrets to load Firebase configuration
 firebase_cert_source = os.environ.get("FIREBASE_CERT_PATH") or st.secrets.get("FIREBASE_CERT_JSON")
 firebase_db_url = os.environ.get("FIREBASE_DB_URL") or st.secrets.get("FIREBASE_DB_URL")
-
-# Log the loaded configuration (avoid logging sensitive details in production)
-logging.info("Firebase DB URL: %s", firebase_db_url)
-logging.info("Firebase Certificate Source Type: %s", type(firebase_cert_source))
 
 if not firebase_cert_source or not firebase_db_url:
     st.error("Firebase configuration is missing. Set FIREBASE (as dict) and FIREBASE_DB_URL in your secrets.")
     st.stop()
 
-# Process the certificate source if it's a dict
 if isinstance(firebase_cert_source, dict):
-    # Log the certificate keys (do not log the private key in production)
-    logging.info("Firebase certificate keys: %s", list(firebase_cert_source.keys()))
     if "private_key" in firebase_cert_source:
-        # Replace escaped newline characters with actual newlines
         firebase_cert_source["private_key"] = firebase_cert_source["private_key"].replace("\\n", "\n")
-else:
-    logging.info("Firebase certificate source is not a dict, checking if it's a valid file path.")
+    try:
+        cred = credentials.Certificate(firebase_cert_source)
+    except Exception as e:
+        st.error("Failed to initialize certificate credential: " + str(e))
+        st.stop()
 
-try:
-    cred = credentials.Certificate(firebase_cert_source)
-    logging.info("Certificate credential initialized successfully.")
-except Exception as e:
-    logging.error("Failed to initialize certificate credential: %s", e)
-    st.error("Failed to initialize certificate credential: " + str(e))
-    st.stop()
 
-# Initialize Firebase Admin only once
 try:
     try:
         firebase_admin.initialize_app(cred, {'databaseURL': firebase_db_url})
         logging.info("Firebase Admin initialized successfully.")
-    except ValueError:
+    except ValueError as e:
         logging.info("Firebase Admin already initialized. Using existing app.")
         firebase_admin.get_app()
 except Exception as e:
@@ -58,8 +43,18 @@ except Exception as e:
     st.error("Firebase initialization failed. Check your configuration.")
     st.stop()
 
-# Additional logging to confirm Firebase Admin is ready
-logging.info("Firebase Admin setup complete.")
+
+try:
+    try:
+        firebase_admin.initialize_app(cred, {'databaseURL': firebase_db_url})
+        logging.info("Firebase Admin initialized successfully.")
+    except ValueError as e:
+        logging.info("Firebase Admin already initialized. Using existing app.")
+        firebase_admin.get_app()
+except Exception as e:
+    logging.error("Error initializing Firebase Admin: %s", e)
+    st.error("Firebase initialization failed. Check your configuration.")
+    st.stop()
 
 def fetch_data(data_path):
     try:
