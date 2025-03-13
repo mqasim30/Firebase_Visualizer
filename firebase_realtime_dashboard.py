@@ -24,11 +24,18 @@ if not firebase_cert_source or not firebase_db_url:
 if os.path.exists(firebase_cert_source):
     cred = credentials.Certificate(firebase_cert_source)
 else:
+    if isinstance(firebase_cert_source, dict):
+        firebase_cert_data = firebase_cert_source
+    else:
+        try:
+            firebase_cert_data = json.loads(firebase_cert_source)
+        except Exception as e:
+            st.error("Error parsing Firebase certificate JSON: " + str(e))
+            st.stop()
     try:
-        firebase_cert_data = json.loads(firebase_cert_source)
-        cred = credentials.Certificate(firebase_cert_data)
+        cred_data = credentials.Certificate(firebase_cert_data)
     except Exception as e:
-        st.error("Error parsing Firebase certificate JSON: " + str(e))
+        st.error("Failed to initialize certificate credential: " + str(e))
         st.stop()
 
 try:
