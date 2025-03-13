@@ -13,30 +13,37 @@ import ipaddress
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-
-firebase_cert_source = os.environ.get("FIREBASE_CERT_PATH") or st.secrets.get("FIREBASE_CERT_JSON")
+# Use st.secrets to load Firebase configuration
+firebase_cert_source = os.environ.get("FIREBASE_CERT_PATH") or st.secrets.get("FIREBASE")
 firebase_db_url = os.environ.get("FIREBASE_DB_URL") or st.secrets.get("FIREBASE_DB_URL")
 
 if not firebase_cert_source or not firebase_db_url:
-    st.error("Firebase configuration is missing. Set FIREBASE_CERT_PATH/FIREBASE_CERT_JSON and FIREBASE_DB_URL environment variables.")
+    st.error("Firebase configuration is missing. Set FIREBASE (as dict) and FIREBASE_DB_URL in your secrets.")
     st.stop()
 
-if os.path.exists(firebase_cert_source):
+# If firebase_cert_source is a path, use it, otherwise it should be a dict
+if isinstance(firebase_cert_source, str) and os.path.exists(firebase_cert_source):
     cred = credentials.Certificate(firebase_cert_source)
 else:
-    if isinstance(firebase_cert_source, dict):
-        firebase_cert_data = firebase_cert_source
-    else:
-        try:
-            firebase_cert_data = json.loads(firebase_cert_source)
-        except Exception as e:
-            st.error("Error parsing Firebase certificate JSON: " + str(e))
-            st.stop()
+    # firebase_cert_source is expected to be a dict from st.secrets
     try:
-        cred_data = credentials.Certificate(firebase_cert_data)
+        cred = credentials.Certificate(firebase_cert_source)
     except Exception as e:
         st.error("Failed to initialize certificate credential: " + str(e))
         st.stop()
+
+try:
+    try:
+        firebase_admin.initialize_app(cred, {'databaseURL': firebase_db_url})
+        logging.info("Firebase Admin initialized successfully.")
+    except ValueError as e:
+        logging.info("Firebase Admin already initialized. Using existing app.")
+        firebase_admin.get_app()
+except Exception as e:
+    logging.error("Error initializing Firebase Admin: %s", e)
+    st.error("Firebase initialization failed. Check your configuration.")
+    st.stop()
+
 
 try:
     try:
