@@ -1,0 +1,142 @@
+
+[     UTC     ] Logs for xomania.streamlit.app/
+────────────────────────────────────────────────────────────────────────────────────────
+[15:23:48] 🚀 Starting up repository: 'firebase_visualizer', branch: 'main', main module: 'firebase_realtime_dashboard.py'
+[15:23:48] 🐙 Cloning repository...
+[15:23:50] 🐙 Cloning into '/mount/src/firebase_visualizer'...
+Warning: Permanently added the ED25519 host key for IP address '140.82.116.3' to the list of known hosts.
+
+[15:23:50] 🐙 Cloned repository!
+[15:23:50] 🐙 Pulling code changes from Github...
+[15:23:51] 📦 Processing dependencies...
+
+──────────────────────────────────────── uv ───────────────────────────────────────────
+
+Using uv pip install.
+Using Python 3.12.9 environment at /home/adminuser/venv
+Resolved 66 packages in 597ms
+Prepared 66 packages in 1.94s
+Installed 66 packages in 139ms
+ + altair==5.5.0
+ + attrs==25.3.0
+ + blinker==1.9.0
+ + cachecontrol==0.14.2
+ + cachetools==5.5.2
+ + certifi==2025.1.31
+ + cffi==1.17.1
+ + charset-normalizer==3.4.1
+ + click==8.1.8
+ + cryptography==44.0.2
+ + firebase-admin[2025-03-13 15:23:54.104270] ==6.7.0
+ + gitdb==4.0.12
+ + gitpython==3.1.44
+ + google-api-core==2.24.2
+ + google-api-python-client==2.164.0
+ + google-auth==2.38.0
+ + google-auth-httplib2==0.2.0
+ + google-cloud-core==2.4.3
+ [2025-03-13 15:23:54.104519] + google-cloud-firestore==2.20.1
+ + google-cloud-storage==3.1.0
+ + google-crc32c==1.6.0
+ + google-resumable-media==2.7.2
+ + googleapis-common-protos==1.69.1
+ + grpcio==1.71.0
+ + grpcio-status==1.71.0
+ + httplib2==0.22.0
+ + idna==3.10
+ + ipaddress==1.0.23[2025-03-13 15:23:54.104783] 
+ + jinja2==3.1.6
+ + jsonschema==4.23.0
+ + jsonschema-specifications==2024.10.1
+ + markupsafe==3.0.2
+ + msgpack==1.1.0
+ + narwhals==1.30.0
+ + numpy==2.2.3
+ + packaging==24.2
+ + pandas==2.2.3
+ + pillow==11.1.0
+ + proto-plus==1.26.1
+ + protobuf[2025-03-13 15:23:54.105165] ==5.29.3
+ + pyarrow==19.0.1
+ + pyasn1==0.6.1
+ + pyasn1-modules==0.4.1
+ + pycparser==2.22
+ + pydeck==0.9.1
+ + pyjwt==2.10.1
+ + pyparsing==3.2.1
+ + python-dateutil==2.9.0.post0
+ + python-dotenv==1.0.1
+ + pytz==2025.1
+ + referencing==0.36.2
+ + requests==2.32.3
+ + rpds-py==0.23.1
+ + rsa==4.9
+ + six==1.17.0
+ +[2025-03-13 15:23:54.105537]  smmap==5.0.2
+ + streamlit==1.43.2
+ + streamlit-autorefresh==1.0.1
+ + tenacity==9.0.0
+ + toml==0.10.2
+ + tornado==6.4.2
+ + typing-extensions==4.12.2
+ + tzdata==2025.1
+ + uritemplate==4.1.1
+ + urllib3==2.3.0
+ + watchdog==6.0.0
+Checking if Streamlit is installed
+Found Streamlit version 1.43.2 in the environment
+Installing rich for an improved exception logging
+Using uv pip install.
+Using Python 3.12.9 environment at /home/adminuser/venv
+Resolved 4 packages in 418ms
+Prepared 4 packages in 137ms
+Installed 4 packages in 12ms
+ + [2025-03-13 15:23:55.946434] markdown-it-py==3.0.0
+ + mdurl==0.1.2
+ + pygments==2.19.1
+ + rich==13.9.4
+
+────────────────────────────────────────────────────────────────────────────────────────
+
+[15:23:56] 🐍 Python dependencies were installed from /mount/src/firebase_visualizer/requirements.txt using uv.
+Check if streamlit is installed
+Streamlit is already installed
+[15:23:58] 📦 Processed dependencies!
+
+
+
+[15:25:35] 🐙 Pulling code changes from Github...
+[15:25:36] 📦 Processing dependencies...
+[15:25:36] 📦 Processed dependencies!
+[15:25:38] 🔄 Updated app!
+[15:28:48] 🐙 Pulling code changes from Github...
+2025-03-13 15:28:49,761 - ERROR - Error initializing Firebase Admin: name 'cred' is not defined
+[15:28:49] 📦 Processing dependencies...
+[15:28:49] 📦 Processed dependencies!
+2025-03-13 15:28:51,280 - ERROR - Error initializing Firebase Admin: name 'cred' is not defined
+[15:28:51] 🔄 Updated app!
+[15:31:06] 🐙 Pulling code changes from Github...
+2025-03-13 15:31:07,963 - INFO - Firebase DB URL: https://xo-mania-88dee-default-rtdb.firebaseio.com
+2025-03-13 15:31:07,963 - INFO - Firebase Certificate Source Type: <class 'streamlit.runtime.secrets.AttrDict'>
+2025-03-13 15:31:07,964 - INFO - Firebase certificate source is not a dict, checking if it's a valid file path.
+2025-03-13 15:31:07,964 - ERROR - Failed to initialize certificate credential: Invalid certificate argument: "{'type': 'service_account', 'project_id': 'xo-mania-88dee', 'private_key_id': 'c9c7716ebb60c062d2f5f642034495d1b706f28d', 'private_key': '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC16H/UC74/XODf\n9+9aTKGXL+NT+uFiLNjLOqH85HiJvQy+tUJ8mwzCKL51jzetaaEJFynALlJAyZO6\nw55ZmjhEeI/r1CBbluM/orZvL1o8MexAE6Z8PaCSifigtl+VBguRqC89wCy/O/JX\nQo7PfsK4ixO7ZRXmkAdwNKzpHfPxF/lFgolYIWiEqCDGmpz/VjZEVEOqSZowIDGk\nsATMAuMZbdIYDCmDU7JFI6WU6+fzQbkb28rtN/o900zLdUb57gxMtqe+6RJkzvDk\n7RQU190X62rrBW4A6iwKLihwf1pPiEnB4O+/Sl0O2SJhOTytjMEPpW7REAxHdjkT\nA3nh2t9TAgMBAAECggEAE37LEamp26vo5Hfzl0+L0zfW+tgcsY3cNM5K2rSNqo1a\nlqcMbMLyjMMbGQmeo596GmROHYJECcd7ZVJeX9H5t8oypR6YfS21myCla/282Pis\nuM1M/sGyuiG+m1K6+a3/2BNt71tE2xXh9LIgZg0lceu4ffvpFfWs+7yEJNOzTMzg\n+OvMXP7nxGane02JAToHo0j5rTdQlmPBlv7PueCfZ1VuQPtunnAD+hFRVHCCvhyT\ngpKVtr4ko0ZNjSNIqEDb2w4qznvtOHNScYjeMZOlF88dx1SK4+x+mngI5+KgkS+c\nNR6fEc6lqubROzyvOzIeFlfelxnwjab6FPK3AsXdoQKBgQDiZTrSzHQhjXiQYSR3\n4X+Xc2hp6Kr5bhF5eaD6Ga8uS9Me+7VtDws0Hv7bQsZPV3G0XHRyGx9zz3jr8NHB\ngHOqee2LmpsmTL60jngnVJKxD4DNv29NCHK78i300AMWHQ7S5RzxDjxPbiKkmNnE\n+7laXQV0Nww8SQjynPeugVYTkQKBgQDNsgYJAtctTpj24MoZKHfDRvFIZNjeAHTZ\nFwi424Av5wbhe2g70jYblwyr4iKc5iSkCHRfcTvdsnb440I5bItgCmFiJa/ei7rw\nSabt8yVHm4zalNMyHuSqgmgBL30czbBREDNDrCUMAQo4W+sVYtRvibH2YwgdIhQC\n2jmsDNzKowKBgQCAjRSKr9ddWfRUnyRTAfMuLzThtmCnA03e2SaD/OOQ+TMnC6wo\nAfvNm7ABFnh+gtuomzrvs+D3JJ638mVYZ7TF3zf4JlDkvX0oDyHAy3AEJBZyPbpY\nVmy3tbtMoHSwMM3DCJ+XbQrn21TGe5hkFr9XxSwcoklLTflLsb+eEgirUQKBgATk\noj4eoi3Cu+LLkCMvEkJD8sNtGreVPTJY2O1E03TQQxqkC+O4aW8YlcWU+IvQ8bgx\nN0t57xmkAC6FgXLKQTqEpLJoARoDKuxCZEUuzok4iw48EhYUJA5mUcENdyVzQyl6\ngC2w76SsdajHjv0QP8tzdBdPXccLo3w54rtUBwCPAoGARNZU69k5s8NFEhJwK+3x\nAU+BFOq7Mg4pQjMxsLGzcivpKMY7GUQyg5edufINaVKapM4MaiICQ2GfqI6N0Hpp\nHxfL4KF1JUVRLxvQZPFDGrYxe9bnNppAFkTUipS1vHkAk1YhJfbwKiLIodSaTqhL\nvU7lNu4S63LdfhT9osjRM9U=\n-----END PRIVATE KEY-----\n', 'client_email': 'firebase-adminsdk-fbsvc@xo-mania-88dee.iam.gserviceaccount.com', 'client_id': '108361741467559812863', 'auth_uri': 'https://accounts.google.com/o/oauth2/auth', 'token_uri': 'https://oauth2.googleapis.com/token', 'auth_provider_x509_cert_url': 'https://www.googleapis.com/oauth2/v1/certs', 'client_x509_cert_url': 'https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40xo-mania-88dee.iam.gserviceaccount.com', 'universe_domain': 'googleapis.com'}". Certificate argument must be a file path, or a dict containing the parsed file contents.
+[15:31:07] 📦 Processing dependencies...
+[15:31:07] 📦 Processed dependencies!
+[15:31:09] 🔄 Updated app!
+2025-03-13 15:31:39,330 - INFO - Firebase DB URL: https://xo-mania-88dee-default-rtdb.firebaseio.com
+2025-03-13 15:31:39,330 - INFO - Firebase Certificate Source Type: <class 'streamlit.runtime.secrets.AttrDict'>
+2025-03-13 15:31:39,331 - INFO - Firebase certificate source is not a dict, checking if it's a valid file path.
+2025-03-13 15:31:39,331 - ERROR - Failed to initialize certificate credential: Invalid certificate argument: "{'type': 'service_account', 'project_id': 'xo-mania-88dee', 'private_key_id': 'c9c7716ebb60c062d2f5f642034495d1b706f28d', 'private_key': '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC16H/UC74/XODf\n9+9aTKGXL+NT+uFiLNjLOqH85HiJvQy+tUJ8mwzCKL51jzetaaEJFynALlJAyZO6\nw55ZmjhEeI/r1CBbluM/orZvL1o8MexAE6Z8PaCSifigtl+VBguRqC89wCy/O/JX\nQo7PfsK4ixO7ZRXmkAdwNKzpHfPxF/lFgolYIWiEqCDGmpz/VjZEVEOqSZowIDGk\nsATMAuMZbdIYDCmDU7JFI6WU6+fzQbkb28rtN/o900zLdUb57gxMtqe+6RJkzvDk\n7RQU190X62rrBW4A6iwKLihwf1pPiEnB4O+/Sl0O2SJhOTytjMEPpW7REAxHdjkT\nA3nh2t9TAgMBAAECggEAE37LEamp26vo5Hfzl0+L0zfW+tgcsY3cNM5K2rSNqo1a\nlqcMbMLyjMMbGQmeo596GmROHYJECcd7ZVJeX9H5t8oypR6YfS21myCla/282Pis\nuM1M/sGyuiG+m1K6+a3/2BNt71tE2xXh9LIgZg0lceu4ffvpFfWs+7yEJNOzTMzg\n+OvMXP7nxGane02JAToHo0j5rTdQlmPBlv7PueCfZ1VuQPtunnAD+hFRVHCCvhyT\ngpKVtr4ko0ZNjSNIqEDb2w4qznvtOHNScYjeMZOlF88dx1SK4+x+mngI5+KgkS+c\nNR6fEc6lqubROzyvOzIeFlfelxnwjab6FPK3AsXdoQKBgQDiZTrSzHQhjXiQYSR3\n4X+Xc2hp6Kr5bhF5eaD6Ga8uS9Me+7VtDws0Hv7bQsZPV3G0XHRyGx9zz3jr8NHB\ngHOqee2LmpsmTL60jngnVJKxD4DNv29NCHK78i300AMWHQ7S5RzxDjxPbiKkmNnE\n+7laXQV0Nww8SQjynPeugVYTkQKBgQDNsgYJAtctTpj24MoZKHfDRvFIZNjeAHTZ\nFwi424Av5wbhe2g70jYblwyr4iKc5iSkCHRfcTvdsnb440I5bItgCmFiJa/ei7rw\nSabt8yVHm4zalNMyHuSqgmgBL30czbBREDNDrCUMAQo4W+sVYtRvibH2YwgdIhQC\n2jmsDNzKowKBgQCAjRSKr9ddWfRUnyRTAfMuLzThtmCnA03e2SaD/OOQ+TMnC6wo\nAfvNm7ABFnh+gtuomzrvs+D3JJ638mVYZ7TF3zf4JlDkvX0oDyHAy3AEJBZyPbpY\nVmy3tbtMoHSwMM3DCJ+XbQrn21TGe5hkFr9XxSwcoklLTflLsb+eEgirUQKBgATk\noj4eoi3Cu+LLkCMvEkJD8sNtGreVPTJY2O1E03TQQxqkC+O4aW8YlcWU+IvQ8bgx\nN0t57xmkAC6FgXLKQTqEpLJoARoDKuxCZEUuzok4iw48EhYUJA5mUcENdyVzQyl6\ngC2w76SsdajHjv0QP8tzdBdPXccLo3w54rtUBwCPAoGARNZU69k5s8NFEhJwK+3x\nAU+BFOq7Mg4pQjMxsLGzcivpKMY7GUQyg5edufINaVKapM4MaiICQ2GfqI6N0Hpp\nHxfL4KF1JUVRLxvQZPFDGrYxe9bnNppAFkTUipS1vHkAk1YhJfbwKiLIodSaTqhL\nvU7lNu4S63LdfhT9osjRM9U=\n-----END PRIVATE KEY-----\n', 'client_email': 'firebase-adminsdk-fbsvc@xo-mania-88dee.iam.gserviceaccount.com', 'client_id': '108361741467559812863', 'auth_uri': 'https://accounts.google.com/o/oauth2/auth', 'token_uri': 'https://oauth2.googleapis.com/token', 'auth_provider_x509_cert_url': 'https://www.googleapis.com/oauth2/v1/certs', 'client_x509_cert_url': 'https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40xo-mania-88dee.iam.gserviceaccount.com', 'universe_domain': 'googleapis.com'}". Certificate argument must be a file path, or a dict containing the parsed file contents.
+[15:31:53] 🐙 Pulling code changes from Github...
+2025-03-13 15:31:54,380 - ERROR - Error initializing Firebase Admin: name 'cred' is not defined
+[15:31:54] 📦 Processing dependencies...
+[15:31:54] 📦 Processed dependencies!
+[15:31:55] 🔄 Updated app!
+[15:32:32] 🐙 Pulling code changes from Github...
+2025-03-13 15:32:33,792 - INFO - Firebase DB URL: https://xo-mania-88dee-default-rtdb.firebaseio.com
+2025-03-13 15:32:33,792 - INFO - Firebase Certificate Source Type: <class 'streamlit.runtime.secrets.AttrDict'>
+2025-03-13 15:32:33,792 - INFO - Firebase certificate source is not a dict, checking if it's a valid file path.
+2025-03-13 15:32:33,792 - ERROR - Failed to initialize certificate credential: Invalid certificate argument: "{'type': 'service_account', 'project_id': 'xo-mania-88dee', 'private_key_id': 'c9c7716ebb60c062d2f5f642034495d1b706f28d', 'private_key': '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC16H/UC74/XODf\n9+9aTKGXL+NT+uFiLNjLOqH85HiJvQy+tUJ8mwzCKL51jzetaaEJFynALlJAyZO6\nw55ZmjhEeI/r1CBbluM/orZvL1o8MexAE6Z8PaCSifigtl+VBguRqC89wCy/O/JX\nQo7PfsK4ixO7ZRXmkAdwNKzpHfPxF/lFgolYIWiEqCDGmpz/VjZEVEOqSZowIDGk\nsATMAuMZbdIYDCmDU7JFI6WU6+fzQbkb28rtN/o900zLdUb57gxMtqe+6RJkzvDk\n7RQU190X62rrBW4A6iwKLihwf1pPiEnB4O+/Sl0O2SJhOTytjMEPpW7REAxHdjkT\nA3nh2t9TAgMBAAECggEAE37LEamp26vo5Hfzl0+L0zfW+tgcsY3cNM5K2rSNqo1a\nlqcMbMLyjMMbGQmeo596GmROHYJECcd7ZVJeX9H5t8oypR6YfS21myCla/282Pis\nuM1M/sGyuiG+m1K6+a3/2BNt71tE2xXh9LIgZg0lceu4ffvpFfWs+7yEJNOzTMzg\n+OvMXP7nxGane02JAToHo0j5rTdQlmPBlv7PueCfZ1VuQPtunnAD+hFRVHCCvhyT\ngpKVtr4ko0ZNjSNIqEDb2w4qznvtOHNScYjeMZOlF88dx1SK4+x+mngI5+KgkS+c\nNR6fEc6lqubROzyvOzIeFlfelxnwjab6FPK3AsXdoQKBgQDiZTrSzHQhjXiQYSR3\n4X+Xc2hp6Kr5bhF5eaD6Ga8uS9Me+7VtDws0Hv7bQsZPV3G0XHRyGx9zz3jr8NHB\ngHOqee2LmpsmTL60jngnVJKxD4DNv29NCHK78i300AMWHQ7S5RzxDjxPbiKkmNnE\n+7laXQV0Nww8SQjynPeugVYTkQKBgQDNsgYJAtctTpj24MoZKHfDRvFIZNjeAHTZ\nFwi424Av5wbhe2g70jYblwyr4iKc5iSkCHRfcTvdsnb440I5bItgCmFiJa/ei7rw\nSabt8yVHm4zalNMyHuSqgmgBL30czbBREDNDrCUMAQo4W+sVYtRvibH2YwgdIhQC\n2jmsDNzKowKBgQCAjRSKr9ddWfRUnyRTAfMuLzThtmCnA03e2SaD/OOQ+TMnC6wo\nAfvNm7ABFnh+gtuomzrvs+D3JJ638mVYZ7TF3zf4JlDkvX0oDyHAy3AEJBZyPbpY\nVmy3tbtMoHSwMM3DCJ+XbQrn21TGe5hkFr9XxSwcoklLTflLsb+eEgirUQKBgATk\noj4eoi3Cu+LLkCMvEkJD8sNtGreVPTJY2O1E03TQQxqkC+O4aW8YlcWU+IvQ8bgx\nN0t57xmkAC6FgXLKQTqEpLJoARoDKuxCZEUuzok4iw48EhYUJA5mUcENdyVzQyl6\ngC2w76SsdajHjv0QP8tzdBdPXccLo3w54rtUBwCPAoGARNZU69k5s8NFEhJwK+3x\nAU+BFOq7Mg4pQjMxsLGzcivpKMY7GUQyg5edufINaVKapM4MaiICQ2GfqI6N0Hpp\nHxfL4KF1JUVRLxvQZPFDGrYxe9bnNppAFkTUipS1vHkAk1YhJfbwKiLIodSaTqhL\nvU7lNu4S63LdfhT9osjRM9U=\n-----END PRIVATE KEY-----\n', 'client_email': 'firebase-adminsdk-fbsvc@xo-mania-88dee.iam.gserviceaccount.com', 'client_id': '108361741467559812863', 'auth_uri': 'https://accounts.google.com/o/oauth2/auth', 'token_uri': 'https://oauth2.googleapis.com/token', 'auth_provider_x509_cert_url': 'https://www.googleapis.com/oauth2/v1/certs', 'client_x509_cert_url': 'https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40xo-mania-88dee.iam.gserviceaccount.com', 'universe_domain': 'googleapis.com'}". Certificate argument must be a file path, or a dict containing the parsed file contents.
+[15:32:33] 📦 Processing dependencies...
+[15:32:33] 📦 Processed dependencies!
+[15:32:35] 🔄 Updated app!
