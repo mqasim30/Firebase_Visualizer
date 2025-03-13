@@ -21,16 +21,15 @@ if not firebase_cert_source or not firebase_db_url:
     st.error("Firebase configuration is missing. Set FIREBASE (as dict) and FIREBASE_DB_URL in your secrets.")
     st.stop()
 
-# If firebase_cert_source is a path, use it, otherwise it should be a dict
-if isinstance(firebase_cert_source, str) and os.path.exists(firebase_cert_source):
-    cred = credentials.Certificate(firebase_cert_source)
-else:
-    # firebase_cert_source is expected to be a dict from st.secrets
+if isinstance(firebase_cert_source, dict):
+    if "private_key" in firebase_cert_source:
+        firebase_cert_source["private_key"] = firebase_cert_source["private_key"].replace("\\n", "\n")
     try:
         cred = credentials.Certificate(firebase_cert_source)
     except Exception as e:
         st.error("Failed to initialize certificate credential: " + str(e))
         st.stop()
+
 
 try:
     try:
