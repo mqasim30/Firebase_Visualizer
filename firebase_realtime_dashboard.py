@@ -1,4 +1,5 @@
 import os
+import json
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -12,15 +13,25 @@ import ipaddress
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-firebase_cert_path = os.environ.get("FIREBASE_CERT_PATH") or st.secrets.get("FIREBASE_CERT_JSON")
+
+firebase_cert_source = os.environ.get("FIREBASE_CERT_PATH") or st.secrets.get("FIREBASE_CERT_JSON")
 firebase_db_url = os.environ.get("FIREBASE_DB_URL") or st.secrets.get("FIREBASE_DB_URL")
 
-if not firebase_cert_path or not firebase_db_url:
-    st.error("Firebase configuration is missing. Set FIREBASE_CERT_PATH and FIREBASE_DB_URL environment variables.")
+if not firebase_cert_source or not firebase_db_url:
+    st.error("Firebase configuration is missing. Set FIREBASE_CERT_PATH/FIREBASE_CERT_JSON and FIREBASE_DB_URL environment variables.")
     st.stop()
 
+if os.path.exists(firebase_cert_source):
+    cred = credentials.Certificate(firebase_cert_source)
+else:
+    try:
+        firebase_cert_data = json.loads(firebase_cert_source)
+        cred = credentials.Certificate(firebase_cert_data)
+    except Exception as e:
+        st.error("Error parsing Firebase certificate JSON: " + str(e))
+        st.stop()
+
 try:
-    cred = credentials.Certificate(firebase_cert_path)
     try:
         firebase_admin.initialize_app(cred, {'databaseURL': firebase_db_url})
         logging.info("Firebase Admin initialized successfully.")
