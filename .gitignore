@@ -1,0 +1,5 @@
+# Ignore the Firebase service account key file
+xo-mania-88dee-firebase-adminsdk-fbsvc-c9c7716ebb.json
+
+# Optionally ignore environment files if used for secrets
+.env
