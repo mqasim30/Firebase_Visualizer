@@ -177,7 +177,7 @@ else:
             players_df["Ad_Revenue"] = pd.to_numeric(players_df["Ad_Revenue"], errors="coerce")
             total_ad_revenue = players_df["Ad_Revenue"].sum()
             st.subheader("Total Ad Revenue (PLAYERS)")
-            st.write(f"${total_ad_revenue:,.2f}")
+            st.write(f"${total_ad_revenue/100:,.2f}")
         else:
             st.write("Ad Revenue data not available in PLAYERS.")
         
