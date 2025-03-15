@@ -160,6 +160,8 @@ else:
         total_players = len(players_df)
         st.subheader("Total Number of Players (PLAYERS)")
         st.write(total_players)
+        
+        # Compute win-related statistics
         stats = compute_stats(players_df)
         if stats:
             st.subheader("Overall Player Statistics (PLAYERS)")
@@ -168,32 +170,48 @@ else:
             st.write(f"UID for Highest Wins Player: {stats.get('uid_highest_win', 'N/A')}")
         else:
             st.write("Wins data not available to compute statistics.")
+        
+        # Calculate total ad revenue if available
+        if "Ad_Revenue" in players_df.columns:
+            # Ensure the values are numeric
+            players_df["Ad_Revenue"] = pd.to_numeric(players_df["Ad_Revenue"], errors="coerce")
+            total_ad_revenue = players_df["Ad_Revenue"].sum()
+            st.subheader("Total Ad Revenue (PLAYERS)")
+            st.write(f"${total_ad_revenue:,.2f}")
+        else:
+            st.write("Ad Revenue data not available in PLAYERS.")
+        
         ip_stats = compute_ip_stats(players_df)
         st.subheader("IP Address Statistics (PLAYERS)")
         st.write(f"Number of Players with IPv4: {ip_stats.get('ipv4_count', 0)}")
         st.write(f"Number of Players with IPv6: {ip_stats.get('ipv6_count', 0)}")
         st.write(f"Number of Players with Missing/Invalid IP: {ip_stats.get('missing_count', 0)}")
+        
         invalid_ip_df = filter_invalid_ips(players_df)
         if not invalid_ip_df.empty:
             st.subheader("Players with Missing/Invalid IP Addresses (PLAYERS)")
             st.dataframe(invalid_ip_df)
         else:
             st.write("No players with missing or invalid IP addresses in PLAYERS.")
+        
         organic_df = players_df[players_df["Source"].str.lower() == "organic"]
         pubscale_df = players_df[players_df["Source"].str.lower() == "pubscale"]
         st.subheader("Source Statistics (PLAYERS)")
         st.write(f"Number of Organic Players: {organic_df.shape[0]}")
         st.write(f"Number of Pubscale Players: {pubscale_df.shape[0]}")
+        
         st.subheader("All Organic Players (PLAYERS)")
         if not organic_df.empty:
             st.dataframe(organic_df)
         else:
             st.write("No players with Source 'organic' found in PLAYERS.")
+        
         st.subheader("All Pubscale Players (PLAYERS)")
         if not pubscale_df.empty:
             st.dataframe(pubscale_df)
         else:
             st.write("No players with Source 'pubscale' found in PLAYERS.")
+        
         st.subheader("Users with Common IP Addresses (PLAYERS)")
         common_ip_df = players_df.groupby("IP").filter(lambda group: len(group) > 1)
         if not common_ip_df.empty:
