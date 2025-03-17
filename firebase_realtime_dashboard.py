@@ -249,18 +249,3 @@ else:
         st.write(f"Number of users with a valid IP in TRACKING: {valid_tracking_ip_count}")
     else:
         st.write("No records found in the TRACKING branch.")
-
-st.header("Matching Records between PLAYERS and TRACKING Based on Common IP")
-if raw_players is None or raw_tracking is None:
-    st.write("Waiting for both PLAYERS and TRACKING data...")
-else:
-    if 'players_df' in locals() and 'tracking_df' in locals() and not players_df.empty and not tracking_df.empty:
-        merged_df = pd.merge(players_df, tracking_df, left_on="IP", right_on="ip", how="inner", suffixes=("_player", "_tracking"))
-        if not merged_df.empty:
-            st.subheader("Merged Records (Common IP)")
-            st.write(f"Number of Matching Records: {len(merged_df)}")
-            st.dataframe(merged_df)
-        else:
-            st.write("No matching IPs found between PLAYERS and TRACKING.")
-    else:
-        st.write("Insufficient data to perform matching.")
