@@ -144,7 +144,7 @@ st.header("PLAYERS Data")
 players_data_path = "PLAYERS"
 st.write(f"Fetching data from: {players_data_path}")
 
-st_autorefresh(interval=5000, limit=100, key="players_refresh")
+st_autorefresh(interval=60000, limit=100, key="players_refresh")
 
 raw_players = fetch_data(players_data_path)
 if raw_players is None:
@@ -229,7 +229,7 @@ st.header("TRACKING Data")
 tracking_data_path = "TRACKING"
 st.write(f"Fetching data from: {tracking_data_path}")
 
-st_autorefresh(interval=5000, limit=100, key="tracking_refresh")
+st_autorefresh(interval=60000, limit=100, key="tracking_refresh")
 
 raw_tracking = fetch_data(tracking_data_path)
 if raw_tracking is None:
