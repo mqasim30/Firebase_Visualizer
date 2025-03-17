@@ -181,19 +181,6 @@ else:
         else:
             st.write("Ad Revenue data not available in PLAYERS.")
         
-        ip_stats = compute_ip_stats(players_df)
-        st.subheader("IP Address Statistics (PLAYERS)")
-        st.write(f"Number of Players with IPv4: {ip_stats.get('ipv4_count', 0)}")
-        st.write(f"Number of Players with IPv6: {ip_stats.get('ipv6_count', 0)}")
-        st.write(f"Number of Players with Missing/Invalid IP: {ip_stats.get('missing_count', 0)}")
-        
-        invalid_ip_df = filter_invalid_ips(players_df)
-        if not invalid_ip_df.empty:
-            st.subheader("Players with Missing/Invalid IP Addresses (PLAYERS)")
-            st.dataframe(invalid_ip_df)
-        else:
-            st.write("No players with missing or invalid IP addresses in PLAYERS.")
-        
         organic_df = players_df[players_df["Source"].str.lower() == "organic"]
         pubscale_df = players_df[players_df["Source"].str.lower() == "pubscale"]
         st.subheader("Source Statistics (PLAYERS)")
@@ -211,3 +198,16 @@ else:
             st.dataframe(pubscale_df)
         else:
             st.write("No players with Source 'pubscale' found in PLAYERS.")
+            
+        ip_stats = compute_ip_stats(players_df)
+        st.subheader("IP Address Statistics (PLAYERS)")
+        st.write(f"Number of Players with IPv4: {ip_stats.get('ipv4_count', 0)}")
+        st.write(f"Number of Players with IPv6: {ip_stats.get('ipv6_count', 0)}")
+        st.write(f"Number of Players with Missing/Invalid IP: {ip_stats.get('missing_count', 0)}")
+        
+        invalid_ip_df = filter_invalid_ips(players_df)
+        if not invalid_ip_df.empty:
+            st.subheader("Players with Missing/Invalid IP Addresses (PLAYERS)")
+            st.dataframe(invalid_ip_df)
+        else:
+            st.write("No players with missing or invalid IP addresses in PLAYERS.")
