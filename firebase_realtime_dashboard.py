@@ -158,7 +158,6 @@ else:
         st.subheader("Total Number of Players (PLAYERS)")
         st.write(total_players)
         
-        # Calculate total ad revenue if available
         if "Ad_Revenue" in players_df.columns:
             # Ensure the values are numeric
             players_df["Ad_Revenue"] = pd.to_numeric(players_df["Ad_Revenue"], errors="coerce")
@@ -167,6 +166,16 @@ else:
             st.write(f"${total_ad_revenue/100:,.2f}")
         else:
             st.write("Ad Revenue data not available in PLAYERS.")
+
+        # Calculate total impressions if available
+        if "Impressions" in players_df.columns:
+            # Ensure the values are numeric
+            players_df["Impressions"] = pd.to_numeric(players_df["Impressions"], errors="coerce")
+            total_impressions = players_df["Impressions"].sum()
+            st.subheader("Total Impressions (PLAYERS)")
+            st.write(total_impressions)
+        else:
+            st.write("Impressions data not available in PLAYERS.")
         
         organic_df = players_df[players_df["Source"].str.lower() == "organic"]
         pubscale_df = players_df[players_df["Source"].str.lower() == "pubscale"]
