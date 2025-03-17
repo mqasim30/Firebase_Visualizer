@@ -137,8 +137,6 @@ def merge_on_common_ip(players_df, tracking_df):
     else:
         return pd.DataFrame()
 
-st.title("Realtime Firebase Data Dashboard")
-
 players_data_path = "PLAYERS"
 
 st_autorefresh(interval=60000, limit=100, key="players_refresh")
