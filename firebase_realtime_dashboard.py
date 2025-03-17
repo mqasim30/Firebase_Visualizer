@@ -212,22 +212,9 @@ else:
         else:
             st.write("No players with missing or invalid IP addresses in PLAYERS.")
         
-        # New Section: Non-IN Geo Count and Table
-        if "Geo" in players_df.columns:
-            # Normalize Geo values: strip, uppercase, and drop empty strings.
-            players_df["Geo"] = players_df["Geo"].astype(str).str.strip().str.upper()
-            non_in_df = players_df[(players_df["Geo"] != "IN") & (players_df["Geo"] != "")]
-            non_in_count = non_in_df.shape[0]
-            st.subheader("Non-IN Geo Count (PLAYERS)")
-            st.markdown(f"<p class='big-value'>{non_in_count}</p>", unsafe_allow_html=True)
-            if not non_in_df.empty:
-                st.subheader("Players with Non-IN Geo (PLAYERS)")
-                st.dataframe(non_in_df)
-            else:
-                st.write("No players with a Geo value different from 'IN'.")
-        else:
-            st.write("Geo data not available in PLAYERS.")
-
+        # New Section: Non-IN Geo Count and Table (based on TRACKING data)
+        # We'll fetch and process the TRACKING data below and then filter by geo.
+        
 # --- Tracking Table Section ---
 tracking_data_path = "TRACKING"
 raw_tracking = fetch_data(tracking_data_path)
@@ -241,5 +228,21 @@ else:
         tracking_df = pd.DataFrame(tracking_records)
         st.subheader("Tracking Data (TRACKING)")
         st.dataframe(tracking_df)
+        
+        # New Section: Non-IN Geo in TRACKING
+        if "geo" in tracking_df.columns:
+            # Normalize geo values: fill NaN with empty string, strip, and convert to uppercase.
+            tracking_df["geo"] = tracking_df["geo"].fillna("").astype(str).str.strip().str.upper()
+            non_in_tracking_df = tracking_df[(tracking_df["geo"] != "IN") & (tracking_df["geo"] != "")]
+            non_in_tracking_count = non_in_tracking_df.shape[0]
+            st.subheader("Non-IN Geo Count in Tracking (TRACKING)")
+            st.markdown(f"<p class='big-value'>{non_in_tracking_count}</p>", unsafe_allow_html=True)
+            if not non_in_tracking_df.empty:
+                st.subheader("Entries with Non-IN Geo in Tracking (TRACKING)")
+                st.dataframe(non_in_tracking_df)
+            else:
+                st.write("No tracking records with Geo different from 'IN'.")
+        else:
+            st.write("Geo field not available in TRACKING.")
     else:
         st.write("No tracking records found in the TRACKING branch.")
