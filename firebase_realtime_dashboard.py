@@ -211,6 +211,16 @@ else:
             st.dataframe(invalid_ip_df)
         else:
             st.write("No players with missing or invalid IP addresses in PLAYERS.")
+        
+        # New Section: Count of non-IN Geo values
+        if "Geo" in players_df.columns:
+            # Normalize Geo to uppercase and remove any whitespace
+            geos = players_df["Geo"].dropna().astype(str).str.strip().str.upper()
+            non_in_count = (geos != "IN").sum()
+            st.subheader("Non-IN Geo Count (PLAYERS)")
+            st.markdown(f"<p class='big-value'>{non_in_count}</p>", unsafe_allow_html=True)
+        else:
+            st.write("Geo data not available in PLAYERS.")
 
 # --- Tracking Table Section ---
 tracking_data_path = "TRACKING"
