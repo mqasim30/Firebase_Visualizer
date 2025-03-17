@@ -64,9 +64,18 @@ except Exception as e:
 
 logging.info("Firebase Admin setup complete.")
 
+# Optionally, cache Firebase Admin initialization (if needed) using st.cache_resource
+@st.cache_resource(show_spinner=False)
+def get_database():
+    return db
+
+database = get_database()
+
+# Cache data fetching for 60 seconds to reduce redundant downloads.
+@st.cache_data(ttl=60, show_spinner=False)
 def fetch_data(data_path):
     try:
-        ref = db.reference(data_path)
+        ref = database.reference(data_path)
         data = ref.get()
         logging.info("Fetched data from %s: %s", data_path, data)
         return data
@@ -83,52 +92,43 @@ def compute_stats(df):
     return stats
 
 def compute_ip_stats(df):
-    ipv4_count = 0
-    ipv6_count = 0
-    missing_count = 0
     if "IP" in df.columns:
-        for ip in df["IP"]:
-            if not isinstance(ip, str) or ip.strip() == "":
-                missing_count += 1
-            else:
-                try:
-                    ip_obj = ipaddress.ip_address(ip)
-                    if ip_obj.version == 4:
-                        ipv4_count += 1
-                    elif ip_obj.version == 6:
-                        ipv6_count += 1
-                except Exception as e:
-                    logging.warning("Invalid IP address '%s': %s", ip, e)
-                    missing_count += 1
+        def ip_version(ip):
+            try:
+                return ipaddress.ip_address(ip).version if isinstance(ip, str) and ip.strip() != "" else None
+            except Exception:
+                return None
+        versions = df["IP"].apply(ip_version)
+        ipv4_count = (versions == 4).sum()
+        ipv6_count = (versions == 6).sum()
+        missing_count = versions.isna().sum()
     else:
+        ipv4_count = 0
+        ipv6_count = 0
         missing_count = len(df)
     return {"ipv4_count": ipv4_count, "ipv6_count": ipv6_count, "missing_count": missing_count}
 
 def filter_invalid_ips(df):
-    invalid_records = []
-    if "IP" in df.columns:
-        for _, row in df.iterrows():
-            ip = row["IP"]
-            if not isinstance(ip, str) or ip.strip() == "":
-                invalid_records.append(row)
-            else:
-                try:
-                    ipaddress.ip_address(ip)
-                except Exception as e:
-                    invalid_records.append(row)
-    return pd.DataFrame(invalid_records)
+    def is_valid_ip(ip):
+        try:
+            ipaddress.ip_address(ip)
+            return True
+        except Exception:
+            return False
+    valid_mask = df["IP"].apply(lambda ip: isinstance(ip, str) and ip.strip() != "" and is_valid_ip(ip))
+    return df[~valid_mask]
 
 def count_valid_tracking_ips(df):
-    valid_count = 0
     if "ip" in df.columns:
-        for ip in df["ip"]:
-            if isinstance(ip, str) and ip.strip() != "":
-                try:
-                    ipaddress.ip_address(ip)
-                    valid_count += 1
-                except Exception:
-                    continue
-    return valid_count
+        def is_valid(ip):
+            try:
+                ipaddress.ip_address(ip)
+                return True
+            except Exception:
+                return False
+        valid_mask = df["ip"].apply(lambda ip: isinstance(ip, str) and ip.strip() != "" and is_valid(ip))
+        return valid_mask.sum()
+    return 0
 
 def merge_on_common_ip(players_df, tracking_df):
     if "IP" in players_df.columns and "ip" in tracking_df.columns:
@@ -137,49 +137,57 @@ def merge_on_common_ip(players_df, tracking_df):
     else:
         return pd.DataFrame()
 
-players_data_path = "PLAYERS"
-
+# Set up auto-refresh every 1 minute
 st_autorefresh(interval=60000, limit=100, key="players_refresh")
 
+players_data_path = "PLAYERS"
 raw_players = fetch_data(players_data_path)
+
+# Add custom CSS for larger text values
+st.markdown(
+    """
+    <style>
+    .big-value {
+        font-size: 24px !important;
+        font-weight: bold;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 if raw_players is None:
     st.write("Waiting for PLAYERS data... (Ensure your database is not empty)")
 else:
-    player_records = []
-    for uid, record in raw_players.items():
-        if isinstance(record, dict):
-            record["uid"] = uid
-            player_records.append(record)
+    # Build player records using dictionary comprehension.
+    player_records = [{"uid": uid, **record} for uid, record in raw_players.items() if isinstance(record, dict)]
     if player_records:
         players_df = pd.DataFrame(player_records)
         total_players = len(players_df)
         st.subheader("Total Number of Players (PLAYERS)")
-        st.write(total_players)
+        st.markdown(f"<p class='big-value'>{total_players}</p>", unsafe_allow_html=True)
         
         if "Ad_Revenue" in players_df.columns:
-            # Ensure the values are numeric
             players_df["Ad_Revenue"] = pd.to_numeric(players_df["Ad_Revenue"], errors="coerce")
             total_ad_revenue = players_df["Ad_Revenue"].sum()
             st.subheader("Total Ad Revenue (PLAYERS)")
-            st.write(f"${total_ad_revenue/100:,.2f}")
+            st.markdown(f"<p class='big-value'>${total_ad_revenue/100:,.2f}</p>", unsafe_allow_html=True)
         else:
             st.write("Ad Revenue data not available in PLAYERS.")
 
-        # Calculate total impressions if available
         if "Impressions" in players_df.columns:
-            # Ensure the values are numeric
             players_df["Impressions"] = pd.to_numeric(players_df["Impressions"], errors="coerce")
             total_impressions = players_df["Impressions"].sum()
             st.subheader("Total Impressions (PLAYERS)")
-            st.write(total_impressions)
+            st.markdown(f"<p class='big-value'>{total_impressions}</p>", unsafe_allow_html=True)
         else:
             st.write("Impressions data not available in PLAYERS.")
         
         organic_df = players_df[players_df["Source"].str.lower() == "organic"]
         pubscale_df = players_df[players_df["Source"].str.lower() == "pubscale"]
         st.subheader("Source Statistics (PLAYERS)")
-        st.write(f"Number of Organic Players: {organic_df.shape[0]}")
-        st.write(f"Number of Pubscale Players: {pubscale_df.shape[0]}")
+        st.markdown(f"<p class='big-value'>Number of Organic Players: {organic_df.shape[0]}</p>", unsafe_allow_html=True)
+        st.markdown(f"<p class='big-value'>Number of Pubscale Players: {pubscale_df.shape[0]}</p>", unsafe_allow_html=True)
         
         st.subheader("All Organic Players (PLAYERS)")
         if not organic_df.empty:
@@ -195,7 +203,7 @@ else:
             
         ip_stats = compute_ip_stats(players_df)
         st.subheader("IP Address Statistics (PLAYERS)")
-        st.write(f"Number of Players with Missing/Invalid IP: {ip_stats.get('missing_count', 0)}")
+        st.markdown(f"<p class='big-value'>Number of Players with Missing/Invalid IP: {ip_stats.get('missing_count', 0)}</p>", unsafe_allow_html=True)
         
         invalid_ip_df = filter_invalid_ips(players_df)
         if not invalid_ip_df.empty:
