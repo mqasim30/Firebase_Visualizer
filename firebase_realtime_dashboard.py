@@ -212,13 +212,19 @@ else:
         else:
             st.write("No players with missing or invalid IP addresses in PLAYERS.")
         
-        # New Section: Count of non-IN Geo values
+        # New Section: Non-IN Geo Count and Table
         if "Geo" in players_df.columns:
-            # Normalize Geo to uppercase and remove any whitespace
-            geos = players_df["Geo"].dropna().astype(str).str.strip().str.upper()
-            non_in_count = (geos != "IN").sum()
+            # Normalize Geo values: strip, uppercase, and drop empty strings.
+            players_df["Geo"] = players_df["Geo"].astype(str).str.strip().str.upper()
+            non_in_df = players_df[(players_df["Geo"] != "IN") & (players_df["Geo"] != "")]
+            non_in_count = non_in_df.shape[0]
             st.subheader("Non-IN Geo Count (PLAYERS)")
             st.markdown(f"<p class='big-value'>{non_in_count}</p>", unsafe_allow_html=True)
+            if not non_in_df.empty:
+                st.subheader("Players with Non-IN Geo (PLAYERS)")
+                st.dataframe(non_in_df)
+            else:
+                st.write("No players with a Geo value different from 'IN'.")
         else:
             st.write("Geo data not available in PLAYERS.")
 
