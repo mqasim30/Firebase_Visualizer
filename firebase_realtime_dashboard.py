@@ -189,8 +189,6 @@ else:
             
         ip_stats = compute_ip_stats(players_df)
         st.subheader("IP Address Statistics (PLAYERS)")
-        st.write(f"Number of Players with IPv4: {ip_stats.get('ipv4_count', 0)}")
-        st.write(f"Number of Players with IPv6: {ip_stats.get('ipv6_count', 0)}")
         st.write(f"Number of Players with Missing/Invalid IP: {ip_stats.get('missing_count', 0)}")
         
         invalid_ip_df = filter_invalid_ips(players_df)
