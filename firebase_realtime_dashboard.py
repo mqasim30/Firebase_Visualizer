@@ -140,9 +140,7 @@ def merge_on_common_ip(players_df, tracking_df):
 st.title("Realtime Firebase Data Dashboard (Admin Access)")
 st.write("This dashboard polls data from the PLAYERS and TRACKING branches using the Admin SDK and displays various statistics, tables, and merged records.")
 
-st.header("PLAYERS Data")
 players_data_path = "PLAYERS"
-st.write(f"Fetching data from: {players_data_path}")
 
 st_autorefresh(interval=60000, limit=100, key="players_refresh")
 
@@ -160,16 +158,6 @@ else:
         total_players = len(players_df)
         st.subheader("Total Number of Players (PLAYERS)")
         st.write(total_players)
-        
-        # Compute win-related statistics
-        stats = compute_stats(players_df)
-        if stats:
-            st.subheader("Overall Player Statistics (PLAYERS)")
-            st.write(f"Average Wins: {stats.get('average_win', 'N/A'):.2f}")
-            st.write(f"Highest Wins: {stats.get('highest_win', 'N/A')}")
-            st.write(f"UID for Highest Wins Player: {stats.get('uid_highest_win', 'N/A')}")
-        else:
-            st.write("Wins data not available to compute statistics.")
         
         # Calculate total ad revenue if available
         if "Ad_Revenue" in players_df.columns:
