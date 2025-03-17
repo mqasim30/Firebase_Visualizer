@@ -183,11 +183,15 @@ else:
         else:
             st.write("Impressions data not available in PLAYERS.")
         
+        # Filter players by source (case-insensitive)
         organic_df = players_df[players_df["Source"].str.lower() == "organic"]
         pubscale_df = players_df[players_df["Source"].str.lower() == "pubscale"]
+        timebucks_df = players_df[players_df["Source"].str.lower() == "timebucks"]
+
         st.subheader("Source Statistics (PLAYERS)")
         st.markdown(f"<p class='big-value'>Number of Organic Players: {organic_df.shape[0]}</p>", unsafe_allow_html=True)
         st.markdown(f"<p class='big-value'>Number of Pubscale Players: {pubscale_df.shape[0]}</p>", unsafe_allow_html=True)
+        st.markdown(f"<p class='big-value'>Number of Timebucks Players: {timebucks_df.shape[0]}</p>", unsafe_allow_html=True)
         
         st.subheader("All Organic Players (PLAYERS)")
         if not organic_df.empty:
@@ -200,21 +204,13 @@ else:
             st.dataframe(pubscale_df)
         else:
             st.write("No players with Source 'pubscale' found in PLAYERS.")
-            
-        ip_stats = compute_ip_stats(players_df)
-        st.subheader("IP Address Statistics (PLAYERS)")
-        st.markdown(f"<p class='big-value'>Number of Players with Missing/Invalid IP: {ip_stats.get('missing_count', 0)}</p>", unsafe_allow_html=True)
         
-        invalid_ip_df = filter_invalid_ips(players_df)
-        if not invalid_ip_df.empty:
-            st.subheader("Players with Missing/Invalid IP Addresses (PLAYERS)")
-            st.dataframe(invalid_ip_df)
+        st.subheader("All Timebucks Players (PLAYERS)")
+        if not timebucks_df.empty:
+            st.dataframe(timebucks_df)
         else:
-            st.write("No players with missing or invalid IP addresses in PLAYERS.")
-        
-        # New Section: Non-IN Geo Count and Table (based on TRACKING data)
-        # We'll fetch and process the TRACKING data below and then filter by geo.
-        
+            st.write("No players with Source 'timebucks' found in PLAYERS.")
+            
 # --- Tracking Table Section ---
 tracking_data_path = "TRACKING"
 raw_tracking = fetch_data(tracking_data_path)
