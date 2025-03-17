@@ -211,3 +211,19 @@ else:
             st.dataframe(invalid_ip_df)
         else:
             st.write("No players with missing or invalid IP addresses in PLAYERS.")
+
+# --- Tracking Table Section ---
+tracking_data_path = "TRACKING"
+raw_tracking = fetch_data(tracking_data_path)
+
+if raw_tracking is None:
+    st.write("Waiting for TRACKING data... (Ensure your database is not empty)")
+else:
+    # Build tracking records using dictionary comprehension.
+    tracking_records = [{"key": key, **record} for key, record in raw_tracking.items() if isinstance(record, dict)]
+    if tracking_records:
+        tracking_df = pd.DataFrame(tracking_records)
+        st.subheader("Tracking Data (TRACKING)")
+        st.dataframe(tracking_df)
+    else:
+        st.write("No tracking records found in the TRACKING branch.")
