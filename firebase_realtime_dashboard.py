@@ -227,12 +227,15 @@ else:
     
     if "player_install_time" in conversions_df.columns:
         conversions_df["Formatted_install_time"] = conversions_df["player_install_time"].apply(format_timestamp)
+        
+    if "player_last_impression_time" in conversions_df.columns:
+        conversions_df["Formatted_last_impression_time"] = conversions_df["player_last_impression_time"].apply(format_timestamp)
     
     # Display the conversion information with player data
     display_cols = [
         "user_id", "conversion_id", "Formatted_time", "goal", "source",
         "player_source", "player_geo", "player_ip", "player_wins", 
-        "player_impressions", "player_ad_revenue", "Formatted_install_time", "player_last_impression_time"
+        "player_impressions", "player_ad_revenue", "Formatted_install_time", "Formatted_last_impression_time"
     ]
     display_cols = [col for col in display_cols if col in conversions_df.columns]
     
