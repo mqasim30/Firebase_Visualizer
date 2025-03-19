@@ -84,8 +84,20 @@ def fetch_latest_players(limit=10):
         logging.error(f"Error fetching latest players: {e}")
         return []
 
-# Function to fetch the latest 10 conversions efficiently
-def fetch_latest_conversions(limit=10):
+# Function to fetch a specific player by UID
+def fetch_player(uid):
+    try:
+        ref = database.reference(f"PLAYERS/{uid}")
+        data = ref.get()
+        if data and isinstance(data, dict):
+            return data
+        return None
+    except Exception as e:
+        logging.error(f"Error fetching player {uid}: {e}")
+        return None
+
+# Function to fetch the latest 10 conversions efficiently with player data
+def fetch_latest_conversions_with_player_data(limit=10):
     try:
         # Directly get the entire CONVERSIONS branch
         conv_ref = database.reference("CONVERSIONS")
@@ -123,13 +135,41 @@ def fetch_latest_conversions(limit=10):
         )
         
         # Take only the requested number
-        result = sorted_conversions[:limit]
-        logging.info(f"Found {len(all_conversions)} total conversions, returning the {len(result)} most recent")
+        latest_conversions = sorted_conversions[:limit]
         
-        return result
+        # Enhance each conversion with player data
+        enhanced_conversions = []
+        for conversion in latest_conversions:
+            user_id = conversion.get("user_id")
+            
+            # Fetch player data directly using the user_id
+            player_data = fetch_player(user_id)
+            
+            if player_data:
+                # Add player data as prefixed fields (to avoid name collisions)
+                player_fields = {
+                    "player_geo": player_data.get("Geo", ""),
+                    "player_source": player_data.get("Source", ""),
+                    "player_ip": player_data.get("IP", ""),
+                    "player_wins": player_data.get("Wins", 0),
+                    "player_impressions": player_data.get("Impressions", 0),
+                    "player_ad_revenue": player_data.get("Ad_Revenue", 0),
+                    "player_install_time": player_data.get("Install_time", 0)
+                }
+                
+                # Combine conversion and player data
+                enhanced_conversion = {**conversion, **player_fields}
+                enhanced_conversions.append(enhanced_conversion)
+            else:
+                # If player data not found, just use the conversion data
+                enhanced_conversions.append(conversion)
+        
+        logging.info(f"Found {len(all_conversions)} total conversions, returning {len(enhanced_conversions)} enhanced conversions")
+        
+        return enhanced_conversions
         
     except Exception as e:
-        logging.error(f"Error fetching conversions: {e}")
+        logging.error(f"Error fetching conversions with player data: {e}")
         return []
 
 def format_timestamp(timestamp):
@@ -168,24 +208,34 @@ else:
     
     st.dataframe(latest_df[display_cols])
 
-# --- LATEST CONVERSIONS SECTION ---
-st.header("Latest 10 Conversions")
+# --- LATEST CONVERSIONS SECTION WITH PLAYER DATA ---
+st.header("Latest 10 Conversions (With Player Data)")
 
-with st.spinner("Loading latest conversions..."):
-    latest_conversions = fetch_latest_conversions(10)
+with st.spinner("Loading latest conversions with player data..."):
+    latest_conversions = fetch_latest_conversions_with_player_data(10)
 
 if not latest_conversions:
     st.warning("No conversions found. Make sure your CONVERSIONS data is properly structured.")
 else:
-    # Create DataFrame from the latest conversions data
+    # Create DataFrame from the enhanced conversions data
     conversions_df = pd.DataFrame(latest_conversions)
     
-    # Format the time to be more readable
+    # Format the timestamps to be more readable
     if "time" in conversions_df.columns:
         conversions_df["Formatted_time"] = conversions_df["time"].apply(format_timestamp)
     
-    # Display the conversion information with all relevant fields
-    display_cols = ["user_id", "conversion_id", "Formatted_time", "goal", "source"]
+    if "player_install_time" in conversions_df.columns:
+        conversions_df["Formatted_install_time"] = conversions_df["player_install_time"].apply(format_timestamp)
+    
+    # Display the conversion information with player data
+    display_cols = [
+        "user_id", "conversion_id", "Formatted_time", "goal", "source",
+        "player_source", "player_geo", "player_ip", "player_wins", 
+        "player_impressions", "player_ad_revenue", "Formatted_install_time"
+    ]
     display_cols = [col for col in display_cols if col in conversions_df.columns]
     
     st.dataframe(conversions_df[display_cols])
+
+# Add caption about timezone
+st.caption("All timestamps are displayed in your local timezone (UTC+5)")
