@@ -236,6 +236,3 @@ else:
     display_cols = [col for col in display_cols if col in conversions_df.columns]
     
     st.dataframe(conversions_df[display_cols])
-
-# Add caption about timezone
-st.caption("All timestamps are displayed in your local timezone (UTC+5)")
