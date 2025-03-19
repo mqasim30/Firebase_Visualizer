@@ -8,7 +8,6 @@ from firebase_admin import credentials, db
 import pandas as pd
 import streamlit as st
 import logging
-from streamlit_autorefresh import st_autorefresh
 import ipaddress
 from datetime import datetime
 
@@ -65,8 +64,7 @@ except Exception as e:
 
 logging.info("Firebase Admin setup complete.")
 
-# Cache data fetching for 60 seconds to reduce redundant downloads.
-@st.cache_data(ttl=60, show_spinner=False)
+# Fetch data with NO caching to ensure fresh data on every page load
 def fetch_data(data_path):
     try:
         ref = database.reference(data_path)
@@ -77,20 +75,17 @@ def fetch_data(data_path):
         logging.error("Error fetching data from %s: %s", data_path, e)
         return None
 
-# Optionally, cache Firebase Admin initialization (if needed) using st.cache_resource
-@st.cache_resource(show_spinner=False)
+# Get database reference
 def get_database():
     return db
 
 database = get_database()
 
-# New function to fetch the latest 10 players using the index on Install_time
-@st.cache_data(ttl=60, show_spinner=False)
+# Function to fetch the latest 10 players using the index on Install_time
 def fetch_latest_players(limit=10):
     try:
         ref = database.reference("PLAYERS")
         # Order by Install_time descending and limit to last 10 entries
-        # This will utilize the .indexOn rule we set up
         query = ref.order_by_child("Install_time").limit_to_last(limit)
         data = query.get()
         logging.info(f"Fetched latest {limit} players based on Install_time")
@@ -103,78 +98,28 @@ def fetch_latest_players(limit=10):
         logging.error(f"Error fetching latest players: {e}")
         return []
 
-# New function to fetch the latest 10 conversions using the index on time
-@st.cache_data(ttl=60, show_spinner=False)
+# Function to fetch the latest 10 conversions using the index on time
 def fetch_latest_conversions(limit=10):
     try:
         ref = database.reference("CONVERSIONS")
         # Order by time descending and limit to last 10 entries
-        # This will utilize the .indexOn rule we set up
         query = ref.order_by_child("time").limit_to_last(limit)
         data = query.get()
         logging.info(f"Fetched latest {limit} conversions based on time")
         if data:
             # Convert to list of records with conversion ID included
-            latest_conversions = [{"conversion_id": conv_id, **record} for conv_id, record in data.items() if isinstance(record, dict)]
+            latest_conversions = []
+            for conv_id, record in data.items():
+                if isinstance(record, dict):
+                    # Create a record with conversion_id and all fields from the record
+                    conversion_record = {"conversion_id": conv_id}
+                    conversion_record.update(record)  # Add all fields from the record
+                    latest_conversions.append(conversion_record)
             return latest_conversions
         return []
     except Exception as e:
         logging.error(f"Error fetching latest conversions: {e}")
         return []
-
-def compute_stats(df):
-    stats = {}
-    if "Wins" in df.columns:
-        stats["average_win"] = df["Wins"].mean()
-        stats["highest_win"] = df["Wins"].max()
-        stats["uid_highest_win"] = df.loc[df["Wins"].idxmax()]["uid"]
-    return stats
-
-def compute_ip_stats(df):
-    if "IP" in df.columns:
-        def ip_version(ip):
-            try:
-                return ipaddress.ip_address(ip).version if isinstance(ip, str) and ip.strip() != "" else None
-            except Exception:
-                return None
-        versions = df["IP"].apply(ip_version)
-        ipv4_count = (versions == 4).sum()
-        ipv6_count = (versions == 6).sum()
-        missing_count = versions.isna().sum()
-    else:
-        ipv4_count = 0
-        ipv6_count = 0
-        missing_count = len(df)
-    return {"ipv4_count": ipv4_count, "ipv6_count": ipv6_count, "missing_count": missing_count}
-
-def filter_invalid_ips(df):
-    def is_valid_ip(ip):
-        try:
-            ipaddress.ip_address(ip)
-            return True
-        except Exception:
-            return False
-    valid_mask = df["IP"].apply(lambda ip: isinstance(ip, str) and ip.strip() != "" and is_valid_ip(ip))
-    return df[~valid_mask]
-
-def count_valid_tracking_ips(df):
-    if "ip" in df.columns:
-        def is_valid(ip):
-            try:
-                ipaddress.ip_address(ip)
-                return True
-            except Exception:
-                return False
-        valid_mask = df["ip"].apply(lambda ip: isinstance(ip, str) and ip.strip() != "" and is_valid(ip))
-        return valid_mask.sum()
-    return 0
-
-def merge_on_common_ip(players_df, tracking_df):
-    if "IP" in players_df.columns and "ip" in tracking_df.columns:
-        merged_df = pd.merge(players_df, tracking_df, left_on="IP", right_on="ip", how="inner", suffixes=("_player", "_tracking"))
-        return merged_df
-    else:
-        return pd.DataFrame()
 
 # Format timestamp to human-readable date
 def format_timestamp(timestamp):
@@ -184,12 +129,6 @@ def format_timestamp(timestamp):
         except (ValueError, TypeError):
             return "Invalid date"
     return "Not available"
-
-# Set up auto-refresh every 1 minute
-st_autorefresh(interval=60000, limit=100, key="players_refresh")
-
-players_data_path = "PLAYERS"
-raw_players = fetch_data(players_data_path)
 
 # Add custom CSS for larger text values
 st.markdown(
@@ -204,111 +143,101 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+# --- KEY METRICS SECTION ---
+st.title("Firebase Game Analytics Dashboard")
+
+# Fetch player data
+players_data_path = "PLAYERS"
+raw_players = fetch_data(players_data_path)
+
 if raw_players is None:
-    st.write("Waiting for PLAYERS data... (Ensure your database is not empty)")
+    st.error("Waiting for PLAYERS data... (Ensure your database is not empty)")
 else:
-    # Build player records using dictionary comprehension.
+    # Build player records
     player_records = [{"uid": uid, **record} for uid, record in raw_players.items() if isinstance(record, dict)]
+    
     if player_records:
         players_df = pd.DataFrame(player_records)
-        total_players = len(players_df)
-        st.subheader("Total Number of Players (PLAYERS)")
-        st.markdown(f"<p class='big-value'>{total_players}</p>", unsafe_allow_html=True)
         
+        # KEY METRICS
+        col1, col2, col3 = st.columns(3)
+        
+        # Total Players
+        total_players = len(players_df)
+        with col1:
+            st.subheader("Total Players")
+            st.markdown(f"<p class='big-value'>{total_players}</p>", unsafe_allow_html=True)
+        
+        # Ad Revenue
         if "Ad_Revenue" in players_df.columns:
             players_df["Ad_Revenue"] = pd.to_numeric(players_df["Ad_Revenue"], errors="coerce")
             total_ad_revenue = players_df["Ad_Revenue"].sum()
-            st.subheader("Total Ad Revenue (PLAYERS)")
-            st.markdown(f"<p class='big-value'>${total_ad_revenue/100:,.2f}</p>", unsafe_allow_html=True)
-        else:
-            st.write("Ad Revenue data not available in PLAYERS.")
-
+            with col2:
+                st.subheader("Total Ad Revenue")
+                st.markdown(f"<p class='big-value'>${total_ad_revenue/100:,.2f}</p>", unsafe_allow_html=True)
+        
+        # Impressions
         if "Impressions" in players_df.columns:
             players_df["Impressions"] = pd.to_numeric(players_df["Impressions"], errors="coerce")
             total_impressions = players_df["Impressions"].sum()
-            st.subheader("Total Impressions (PLAYERS)")
-            st.markdown(f"<p class='big-value'>{total_impressions}</p>", unsafe_allow_html=True)
-        else:
-            st.write("Impressions data not available in PLAYERS.")
+            with col3:
+                st.subheader("Total Impressions")
+                st.markdown(f"<p class='big-value'>{total_impressions:,.0f}</p>", unsafe_allow_html=True)
+        
+        # SOURCE BREAKDOWN
+        st.subheader("Source Statistics")
         
         # Filter players by source (case-insensitive)
+        cols = st.columns(3)
+        
         organic_df = players_df[players_df["Source"].str.lower() == "organic"]
         pubscale_df = players_df[players_df["Source"].str.lower() == "pubscale"]
         timebucks_df = players_df[players_df["Source"].str.lower() == "timebucks"]
+        
+        with cols[0]:
+            st.metric("Organic Players", organic_df.shape[0])
+        
+        with cols[1]:
+            st.metric("Pubscale Players", pubscale_df.shape[0])
+        
+        with cols[2]:
+            st.metric("Timebucks Players", timebucks_df.shape[0])
 
-        st.subheader("Source Statistics (PLAYERS)")
-        st.markdown(f"<p class='big-value'>Number of Organic Players: {organic_df.shape[0]}</p>", unsafe_allow_html=True)
-        st.markdown(f"<p class='big-value'>Number of Pubscale Players: {pubscale_df.shape[0]}</p>", unsafe_allow_html=True)
-        st.markdown(f"<p class='big-value'>Number of Timebucks Players: {timebucks_df.shape[0]}</p>", unsafe_allow_html=True)
-        
-        st.subheader("All Organic Players (PLAYERS)")
-        if not organic_df.empty:
-            st.dataframe(organic_df)
-        else:
-            st.write("No players with Source 'organic' found in PLAYERS.")
-        
-        st.subheader("All Pubscale Players (PLAYERS)")
-        if not pubscale_df.empty:
-            st.dataframe(pubscale_df)
-        else:
-            st.write("No players with Source 'pubscale' found in PLAYERS.")
-        
-        st.subheader("All Timebucks Players (PLAYERS)")
-        if not timebucks_df.empty:
-            st.dataframe(timebucks_df)
-        else:
-            st.write("No players with Source 'timebucks' found in PLAYERS.")
-            
-# --- Tracking Table Section ---
-tracking_data_path = "TRACKING"
-raw_tracking = fetch_data(tracking_data_path)
+# --- LATEST PLAYERS SECTION ---
+st.header("Latest 10 Players")
 
-if raw_tracking is None:
-    st.write("Waiting for TRACKING data... (Ensure your database is not empty)")
+# Fetch the latest 10 players
+latest_players = fetch_latest_players(10)
+
+if not latest_players:
+    st.warning("No recent players found or Install_time field not available")
 else:
-    # Build tracking records using dictionary comprehension.
-    tracking_records = [{"key": key, **record} for key, record in raw_tracking.items() if isinstance(record, dict)]
-    if tracking_records:
-        tracking_df = pd.DataFrame(tracking_records)
-        st.subheader("Tracking Data (TRACKING)")
-        st.dataframe(tracking_df)
-        
-        # New Section: Non-IN Geo in TRACKING
-        if "geo" in tracking_df.columns:
-            # Normalize geo values: fill NaN with empty string, strip, and convert to uppercase.
-            tracking_df["geo"] = tracking_df["geo"].fillna("").astype(str).str.strip().str.upper()
-            non_in_tracking_df = tracking_df[(tracking_df["geo"] != "IN") & (tracking_df["geo"] != "")]
-            non_in_tracking_count = non_in_tracking_df.shape[0]
-            st.subheader("Non-IN Geo Count in Tracking (TRACKING)")
-            st.markdown(f"<p class='big-value'>{non_in_tracking_count}</p>", unsafe_allow_html=True)
-            if not non_in_tracking_df.empty:
-                st.subheader("Entries with Non-IN Geo in Tracking (TRACKING)")
-                st.dataframe(non_in_tracking_df)
-            else:
-                st.write("No tracking records with Geo different from 'IN'.")
-        else:
-            st.write("Geo field not available in TRACKING.")
-    else:
-        st.write("No tracking records found in the TRACKING branch.")
-        
-# --- Conversions Data Section ---
-st.header("Conversions Data")
-conversions_data_path = "CONVERSIONS"
-raw_conversions = fetch_data(conversions_data_path)  
-
-
+    # Create DataFrame from the latest players data
+    latest_df = pd.DataFrame(latest_players)
     
-# Fetch the latest 10 conversions using our function
+    # Format the Install_time to be more readable
+    if "Install_time" in latest_df.columns:
+        latest_df["Formatted_Install_time"] = latest_df["Install_time"].apply(format_timestamp)
+        # Sort the data by Install_time
+        latest_df = latest_df.sort_values(by="Install_time", ascending=False)
+    
+    # Display key information in a clean table
+    display_cols = ["uid", "Formatted_Install_time", "Source", "Geo", "IP", "Wins", "Goal", "Impressions", "Ad_Revenue"]
+    display_cols = [col for col in display_cols if col in latest_df.columns]
+    
+    st.dataframe(latest_df[display_cols])
+
+# --- LATEST CONVERSIONS SECTION ---
+st.header("Latest 10 Conversions")
+
+# Fetch the latest 10 conversions
 latest_conversions = fetch_latest_conversions(10)
 
 if not latest_conversions:
-    st.write("No conversions found or time field not available. Make sure you've updated your Firebase security rules.")
+    st.warning("No conversions found or time field not available. Make sure you've updated your Firebase security rules.")
 else:
     # Create DataFrame from the latest conversions data
     conversions_df = pd.DataFrame(latest_conversions)
-    
-    # Debug: Show raw dataframe columns
-    st.write("Raw conversion dataframe columns:", list(conversions_df.columns))
     
     # Format the time to be more readable
     if "time" in conversions_df.columns:
@@ -316,35 +245,11 @@ else:
         # Sort by time
         conversions_df = conversions_df.sort_values(by="time", ascending=False)
     
-    # Display ALL columns to ensure we don't miss anything
-    st.subheader("Latest 10 Conversions (All Fields)")
-    st.dataframe(conversions_df)
+    # Display the conversion information
+    display_cols = ["conversion_id", "Formatted_time", "goal", "source"]
+    display_cols = [col for col in display_cols if col in conversions_df.columns]
+    
+    st.dataframe(conversions_df[display_cols])
 
-# --- Latest Players Section (New) ---
-st.header("Latest 10 Players")
-st.write("This section shows the 10 most recently installed players based on Install_time")
-
-# Fetch the latest 10 players using our new function
-latest_players = fetch_latest_players(10)
-
-if not latest_players:
-    st.write("No recent players found or Install_time field not available")
-else:
-    # Create DataFrame from the latest players data
-    latest_df = pd.DataFrame(latest_players)
-    
-    # Create a copy of the dataframe for display
-    display_df = latest_df.copy()
-    
-    # Format the Install_time to be more readable but keep original for sorting
-    if "Install_time" in display_df.columns:
-        display_df["Formatted_Install_time"] = display_df["Install_time"].apply(format_timestamp)
-        # Sort the data by Install_time before selecting display columns
-        display_df = display_df.sort_values(by="Install_time", ascending=False)
-    
-    # Display key information in a clean table
-    display_cols = ["uid", "Formatted_Install_time", "Source", "Geo", "IP", "Wins", "Goal", "Impressions", "Ad_Revenue"]
-    display_cols = [col for col in display_cols if col in display_df.columns]
-    
-    st.subheader("Latest Players Information")
-    st.dataframe(display_df[display_cols])
+# Add note about manual refresh
+st.info("Note: This dashboard does not auto-refresh. To see the latest data, refresh the browser page.")
