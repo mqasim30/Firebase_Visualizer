@@ -88,38 +88,31 @@ def fetch_latest_players(limit=10):
 # Function to fetch the latest 10 conversions efficiently
 def fetch_latest_conversions(limit=10):
     try:
-        all_conversions = []
+        # Directly get the entire CONVERSIONS branch
+        conv_ref = database.reference("CONVERSIONS")
+        all_data = conv_ref.get()
         
-        # Get all users with conversions
-        user_ref = database.reference("CONVERSIONS")
-        user_data = user_ref.get(shallow=True)
-        
-        if not user_data or not isinstance(user_data, dict):
+        if not all_data or not isinstance(all_data, dict):
+            logging.warning("No conversion data found")
             return []
             
-        # For each user, get their conversions
-        for user_id in user_data.keys():
-            user_conv_ref = database.reference(f"CONVERSIONS/{user_id}")
-            # Get conversion IDs
-            user_conv_ids = user_conv_ref.get(shallow=True)
-            
-            if not user_conv_ids or not isinstance(user_conv_ids, dict):
+        # Flatten the nested structure
+        all_conversions = []
+        
+        # Process the nested structure
+        for user_id, user_data in all_data.items():
+            if not isinstance(user_data, dict):
                 continue
                 
-            # For each conversion type, get the data
-            for conv_id in user_conv_ids.keys():
-                # Get this specific conversion
-                conv_ref = database.reference(f"CONVERSIONS/{user_id}/{conv_id}")
-                conv_data = conv_ref.get()
-                
+            for conv_id, conv_data in user_data.items():
                 if not isinstance(conv_data, dict):
                     continue
                     
-                # Add this conversion to our list
+                # Create a record with all the relevant fields
                 conversion = {
                     "user_id": user_id,
                     "conversion_id": conv_id,
-                    **conv_data
+                    **conv_data  # This adds goal, source, time
                 }
                 all_conversions.append(conversion)
         
@@ -130,10 +123,14 @@ def fetch_latest_conversions(limit=10):
             reverse=True
         )
         
-        return sorted_conversions[:limit]
+        # Take only the requested number
+        result = sorted_conversions[:limit]
+        logging.info(f"Found {len(all_conversions)} total conversions, returning the {len(result)} most recent")
+        
+        return result
         
     except Exception as e:
-        logging.error(f"Error fetching latest conversions: {e}")
+        logging.error(f"Error fetching conversions: {e}")
         return []
 
 # Format timestamp to human-readable date
