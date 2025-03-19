@@ -203,6 +203,9 @@ else:
         # Sort the data by Install_time
         latest_df = latest_df.sort_values(by="Install_time", ascending=False)
     
+    if "Last_Impression_time" in latest_df.columns:
+        latest_df["Last_Impression_time"] = latest_df["Last_Impression_time"].apply(format_timestamp)
+    
     # Display key information in a clean table
     display_cols = ["uid", "Formatted_Install_time", "Source", "Geo", "IP", "Wins", "Goal", "Impressions", "Ad_Revenue", "Last_Impression_time"]
     display_cols = [col for col in display_cols if col in latest_df.columns]
