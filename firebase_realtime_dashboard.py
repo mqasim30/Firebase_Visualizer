@@ -296,40 +296,29 @@ st.header("Conversions Data")
 conversions_data_path = "CONVERSIONS"
 raw_conversions = fetch_data(conversions_data_path)  
 
-# Check if we have any conversions data
-if raw_conversions is None:
-    st.write("Waiting for CONVERSIONS data... (Ensure your database is not empty)")
+
+    
+# Fetch the latest 10 conversions using our function
+latest_conversions = fetch_latest_conversions(10)
+
+if not latest_conversions:
+    st.write("No conversions found or time field not available. Make sure you've updated your Firebase security rules.")
 else:
-    # Debug: Show sample of raw data structure
-    st.write(f"Found {len(raw_conversions) if isinstance(raw_conversions, dict) else 0} conversion entries")
+    # Create DataFrame from the latest conversions data
+    conversions_df = pd.DataFrame(latest_conversions)
     
-    if isinstance(raw_conversions, dict) and raw_conversions:
-        # Get first item to inspect structure (for debugging)
-        sample_key = next(iter(raw_conversions))
-        sample_data = raw_conversions[sample_key]
-        st.write("Sample conversion data structure:", sample_data)
+    # Debug: Show raw dataframe columns
+    st.write("Raw conversion dataframe columns:", list(conversions_df.columns))
     
-    # Fetch the latest 10 conversions using our function
-    latest_conversions = fetch_latest_conversions(10)
+    # Format the time to be more readable
+    if "time" in conversions_df.columns:
+        conversions_df["Formatted_time"] = conversions_df["time"].apply(format_timestamp)
+        # Sort by time
+        conversions_df = conversions_df.sort_values(by="time", ascending=False)
     
-    if not latest_conversions:
-        st.write("No conversions found or time field not available. Make sure you've updated your Firebase security rules.")
-    else:
-        # Create DataFrame from the latest conversions data
-        conversions_df = pd.DataFrame(latest_conversions)
-        
-        # Debug: Show raw dataframe columns
-        st.write("Raw conversion dataframe columns:", list(conversions_df.columns))
-        
-        # Format the time to be more readable
-        if "time" in conversions_df.columns:
-            conversions_df["Formatted_time"] = conversions_df["time"].apply(format_timestamp)
-            # Sort by time
-            conversions_df = conversions_df.sort_values(by="time", ascending=False)
-        
-        # Display ALL columns to ensure we don't miss anything
-        st.subheader("Latest 10 Conversions (All Fields)")
-        st.dataframe(conversions_df)
+    # Display ALL columns to ensure we don't miss anything
+    st.subheader("Latest 10 Conversions (All Fields)")
+    st.dataframe(conversions_df)
 
 # --- Latest Players Section (New) ---
 st.header("Latest 10 Players")
