@@ -300,7 +300,15 @@ raw_conversions = fetch_data(conversions_data_path)
 if raw_conversions is None:
     st.write("Waiting for CONVERSIONS data... (Ensure your database is not empty)")
 else:
-    st.write(f"Successfully connected to CONVERSIONS data.")
+    # Debug: Show sample of raw data structure
+    st.write(f"Found {len(raw_conversions) if isinstance(raw_conversions, dict) else 0} conversion entries")
+    
+    if isinstance(raw_conversions, dict) and raw_conversions:
+        # Get first item to inspect structure (for debugging)
+        sample_key = next(iter(raw_conversions))
+        sample_data = raw_conversions[sample_key]
+        st.write("Sample conversion data structure:", sample_data)
+    
     # Fetch the latest 10 conversions using our function
     latest_conversions = fetch_latest_conversions(10)
     
@@ -310,18 +318,18 @@ else:
         # Create DataFrame from the latest conversions data
         conversions_df = pd.DataFrame(latest_conversions)
         
+        # Debug: Show raw dataframe columns
+        st.write("Raw conversion dataframe columns:", list(conversions_df.columns))
+        
         # Format the time to be more readable
         if "time" in conversions_df.columns:
             conversions_df["Formatted_time"] = conversions_df["time"].apply(format_timestamp)
             # Sort by time
             conversions_df = conversions_df.sort_values(by="time", ascending=False)
         
-        # Display key information in a clean table
-        conv_display_cols = ["conversion_id", "Formatted_time", "goal", "source"]
-        conv_display_cols = [col for col in conv_display_cols if col in conversions_df.columns]
-        
-        st.subheader("Latest 10 Conversions")
-        st.dataframe(conversions_df[conv_display_cols])
+        # Display ALL columns to ensure we don't miss anything
+        st.subheader("Latest 10 Conversions (All Fields)")
+        st.dataframe(conversions_df)
 
 # --- Latest Players Section (New) ---
 st.header("Latest 10 Players")
