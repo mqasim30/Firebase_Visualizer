@@ -143,9 +143,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# --- KEY METRICS SECTION ---
-st.title("Firebase Game Analytics Dashboard")
-
 # Fetch player data
 players_data_path = "PLAYERS"
 raw_players = fetch_data(players_data_path)
