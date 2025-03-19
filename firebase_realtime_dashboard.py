@@ -180,7 +180,7 @@ def format_timestamp(timestamp):
             dt = datetime.fromtimestamp(timestamp/1000)
             # Add 5 hours to adjust for timezone
             dt = dt + timedelta(hours=5)
-            return dt.strftime('%Y-%m-%d %H:%M:%S')
+            return dt.strftime('%H:%M:%S %Y-%m-%d')
         except (ValueError, TypeError):
             return "Invalid date"
     return "Not available"
