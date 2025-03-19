@@ -103,6 +103,25 @@ def fetch_latest_players(limit=10):
         logging.error(f"Error fetching latest players: {e}")
         return []
 
+# New function to fetch the latest 10 conversions using the index on time
+@st.cache_data(ttl=60, show_spinner=False)
+def fetch_latest_conversions(limit=10):
+    try:
+        ref = database.reference("CONVERSIONS")
+        # Order by time descending and limit to last 10 entries
+        # This will utilize the .indexOn rule we set up
+        query = ref.order_by_child("time").limit_to_last(limit)
+        data = query.get()
+        logging.info(f"Fetched latest {limit} conversions based on time")
+        if data:
+            # Convert to list of records with conversion ID included
+            latest_conversions = [{"conversion_id": conv_id, **record} for conv_id, record in data.items() if isinstance(record, dict)]
+            return latest_conversions
+        return []
+    except Exception as e:
+        logging.error(f"Error fetching latest conversions: {e}")
+        return []
+
 def compute_stats(df):
     stats = {}
     if "Wins" in df.columns:
