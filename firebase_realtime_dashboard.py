@@ -176,49 +176,37 @@ else:
     if player_records:
         players_df = pd.DataFrame(player_records)
         
-        # KEY METRICS
-        col1, col2, col3 = st.columns(3)
-        
+        # KEY METRICS - Vertical format
         # Total Players
         total_players = len(players_df)
-        with col1:
-            st.subheader("Total Players")
-            st.markdown(f"<p class='big-value'>{total_players}</p>", unsafe_allow_html=True)
+        st.subheader("Total Number of Players (PLAYERS)")
+        st.markdown(f"<p class='big-value'>{total_players}</p>", unsafe_allow_html=True)
         
         # Ad Revenue
         if "Ad_Revenue" in players_df.columns:
             players_df["Ad_Revenue"] = pd.to_numeric(players_df["Ad_Revenue"], errors="coerce")
             total_ad_revenue = players_df["Ad_Revenue"].sum()
-            with col2:
-                st.subheader("Total Ad Revenue")
-                st.markdown(f"<p class='big-value'>${total_ad_revenue/100:,.2f}</p>", unsafe_allow_html=True)
+            st.subheader("Total Ad Revenue (PLAYERS)")
+            st.markdown(f"<p class='big-value'>${total_ad_revenue/100:,.2f}</p>", unsafe_allow_html=True)
         
         # Impressions
         if "Impressions" in players_df.columns:
             players_df["Impressions"] = pd.to_numeric(players_df["Impressions"], errors="coerce")
             total_impressions = players_df["Impressions"].sum()
-            with col3:
-                st.subheader("Total Impressions")
-                st.markdown(f"<p class='big-value'>{total_impressions:,.0f}</p>", unsafe_allow_html=True)
+            st.subheader("Total Impressions (PLAYERS)")
+            st.markdown(f"<p class='big-value'>{total_impressions:,.0f}</p>", unsafe_allow_html=True)
         
         # SOURCE BREAKDOWN
-        st.subheader("Source Statistics")
+        st.subheader("Source Statistics (PLAYERS)")
         
         # Filter players by source (case-insensitive)
-        cols = st.columns(3)
-        
         organic_df = players_df[players_df["Source"].str.lower() == "organic"]
         pubscale_df = players_df[players_df["Source"].str.lower() == "pubscale"]
         timebucks_df = players_df[players_df["Source"].str.lower() == "timebucks"]
         
-        with cols[0]:
-            st.metric("Organic Players", organic_df.shape[0])
-        
-        with cols[1]:
-            st.metric("Pubscale Players", pubscale_df.shape[0])
-        
-        with cols[2]:
-            st.metric("Timebucks Players", timebucks_df.shape[0])
+        st.markdown(f"<p class='big-value'>Number of Organic Players: {organic_df.shape[0]}</p>", unsafe_allow_html=True)
+        st.markdown(f"<p class='big-value'>Number of Pubscale Players: {pubscale_df.shape[0]}</p>", unsafe_allow_html=True)
+        st.markdown(f"<p class='big-value'>Number of Timebucks Players: {timebucks_df.shape[0]}</p>", unsafe_allow_html=True)
 
 # --- LATEST PLAYERS SECTION ---
 st.header("Latest 10 Players")
@@ -265,3 +253,4 @@ else:
     display_cols = [col for col in display_cols if col in conversions_df.columns]
     
     st.dataframe(conversions_df[display_cols])
+
