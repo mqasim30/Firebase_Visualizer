@@ -250,6 +250,3 @@ else:
     display_cols = [col for col in display_cols if col in conversions_df.columns]
     
     st.dataframe(conversions_df[display_cols])
-
-# Add note about manual refresh
-st.info("Note: This dashboard does not auto-refresh. To see the latest data, refresh the browser page.")
