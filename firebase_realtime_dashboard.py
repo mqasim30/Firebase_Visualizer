@@ -65,24 +65,24 @@ except Exception as e:
 
 logging.info("Firebase Admin setup complete.")
 
-# Optionally, cache Firebase Admin initialization (if needed) using st.cache_resource
-@st.cache_resource(show_spinner=False)
-def get_database():
-    return db
-
-database = get_database()
-
 # Cache data fetching for 60 seconds to reduce redundant downloads.
 @st.cache_data(ttl=60, show_spinner=False)
 def fetch_data(data_path):
     try:
         ref = database.reference(data_path)
         data = ref.get()
-        logging.info("Fetched data from %s: %s", data_path, data)
+        logging.info("Fetched data from %s", data_path)
         return data
     except Exception as e:
         logging.error("Error fetching data from %s: %s", data_path, e)
         return None
+
+# Optionally, cache Firebase Admin initialization (if needed) using st.cache_resource
+@st.cache_resource(show_spinner=False)
+def get_database():
+    return db
+
+database = get_database()
 
 # New function to fetch the latest 10 players using the index on Install_time
 @st.cache_data(ttl=60, show_spinner=False)
@@ -290,6 +290,38 @@ else:
             st.write("Geo field not available in TRACKING.")
     else:
         st.write("No tracking records found in the TRACKING branch.")
+        
+# --- Conversions Data Section ---
+st.header("Conversions Data")
+conversions_data_path = "CONVERSIONS"
+raw_conversions = fetch_data(conversions_data_path)  
+
+# Check if we have any conversions data
+if raw_conversions is None:
+    st.write("Waiting for CONVERSIONS data... (Ensure your database is not empty)")
+else:
+    st.write(f"Successfully connected to CONVERSIONS data.")
+    # Fetch the latest 10 conversions using our function
+    latest_conversions = fetch_latest_conversions(10)
+    
+    if not latest_conversions:
+        st.write("No conversions found or time field not available. Make sure you've updated your Firebase security rules.")
+    else:
+        # Create DataFrame from the latest conversions data
+        conversions_df = pd.DataFrame(latest_conversions)
+        
+        # Format the time to be more readable
+        if "time" in conversions_df.columns:
+            conversions_df["Formatted_time"] = conversions_df["time"].apply(format_timestamp)
+            # Sort by time
+            conversions_df = conversions_df.sort_values(by="time", ascending=False)
+        
+        # Display key information in a clean table
+        conv_display_cols = ["conversion_id", "Formatted_time", "goal", "source"]
+        conv_display_cols = [col for col in conv_display_cols if col in conversions_df.columns]
+        
+        st.subheader("Latest 10 Conversions")
+        st.dataframe(conversions_df[conv_display_cols])
 
 # --- Latest Players Section (New) ---
 st.header("Latest 10 Players")
