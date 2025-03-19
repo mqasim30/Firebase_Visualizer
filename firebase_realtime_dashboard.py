@@ -285,14 +285,18 @@ else:
     # Create DataFrame from the latest players data
     latest_df = pd.DataFrame(latest_players)
     
-    # Format the Install_time to be more readable
-    if "Install_time" in latest_df.columns:
-        latest_df["Formatted_Install_time"] = latest_df["Install_time"].apply(format_timestamp)
+    # Create a copy of the dataframe for display
+    display_df = latest_df.copy()
+    
+    # Format the Install_time to be more readable but keep original for sorting
+    if "Install_time" in display_df.columns:
+        display_df["Formatted_Install_time"] = display_df["Install_time"].apply(format_timestamp)
+        # Sort the data by Install_time before selecting display columns
+        display_df = display_df.sort_values(by="Install_time", ascending=False)
     
     # Display key information in a clean table
     display_cols = ["uid", "Formatted_Install_time", "Source", "Geo", "IP", "Wins", "Goal", "Impressions", "Ad_Revenue"]
-    display_cols = [col for col in display_cols if col in latest_df.columns]
+    display_cols = [col for col in display_cols if col in display_df.columns]
     
     st.subheader("Latest Players Information")
-    st.dataframe(latest_df[display_cols].sort_values(by="Install_time", ascending=False))
-    
+    st.dataframe(display_df[display_cols])
