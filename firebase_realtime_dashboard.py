@@ -154,7 +154,8 @@ def fetch_latest_conversions_with_player_data(limit=10):
                     "player_wins": player_data.get("Wins", 0),
                     "player_impressions": player_data.get("Impressions", 0),
                     "player_ad_revenue": player_data.get("Ad_Revenue", 0),
-                    "player_install_time": player_data.get("Install_time", 0)
+                    "player_install_time": player_data.get("Install_time", 0),
+                    "player_last_impression_time": player_data.get("Last_Impression_time", 0)
                 }
                 
                 # Combine conversion and player data
@@ -203,7 +204,7 @@ else:
         latest_df = latest_df.sort_values(by="Install_time", ascending=False)
     
     # Display key information in a clean table
-    display_cols = ["uid", "Formatted_Install_time", "Source", "Geo", "IP", "Wins", "Goal", "Impressions", "Ad_Revenue"]
+    display_cols = ["uid", "Formatted_Install_time", "Source", "Geo", "IP", "Wins", "Goal", "Impressions", "Ad_Revenue", "Last_Impression_time"]
     display_cols = [col for col in display_cols if col in latest_df.columns]
     
     st.dataframe(latest_df[display_cols])
@@ -231,7 +232,7 @@ else:
     display_cols = [
         "user_id", "conversion_id", "Formatted_time", "goal", "source",
         "player_source", "player_geo", "player_ip", "player_wins", 
-        "player_impressions", "player_ad_revenue", "Formatted_install_time"
+        "player_impressions", "player_ad_revenue", "Formatted_install_time", "player_last_impression_time"
     ]
     display_cols = [col for col in display_cols if col in conversions_df.columns]
     
