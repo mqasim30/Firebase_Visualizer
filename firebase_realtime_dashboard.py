@@ -98,25 +98,45 @@ def fetch_latest_players(limit=10):
         logging.error(f"Error fetching latest players: {e}")
         return []
 
-# Function to fetch the latest 10 conversions using the index on time
+# New function to fetch the latest 10 conversions with properly handling nested structures
 def fetch_latest_conversions(limit=10):
     try:
+        # First, get all conversions data
         ref = database.reference("CONVERSIONS")
-        # Order by time descending and limit to last 10 entries
-        query = ref.order_by_child("time").limit_to_last(limit)
-        data = query.get()
-        logging.info(f"Fetched latest {limit} conversions based on time")
-        if data:
-            # Convert to list of records with conversion ID included
-            latest_conversions = []
-            for conv_id, record in data.items():
-                if isinstance(record, dict):
-                    # Create a record with conversion_id and all fields from the record
-                    conversion_record = {"conversion_id": conv_id}
-                    conversion_record.update(record)  # Add all fields from the record
-                    latest_conversions.append(conversion_record)
-            return latest_conversions
-        return []
+        all_data = ref.get()
+        
+        if not all_data or not isinstance(all_data, dict):
+            logging.error("No valid CONVERSIONS data found")
+            return []
+        
+        # Flatten the nested structure
+        all_conversions = []
+        
+        for user_id, user_data in all_data.items():
+            if not isinstance(user_data, dict):
+                continue
+                
+            for win_id, conversion_data in user_data.items():
+                if not isinstance(conversion_data, dict):
+                    continue
+                    
+                # Extract the conversion data with proper IDs
+                conversion = {
+                    "user_id": user_id,
+                    "conversion_id": win_id,
+                    **conversion_data  # This adds goal, source, time
+                }
+                all_conversions.append(conversion)
+        
+        # Sort by time (descending) and take the latest 10
+        sorted_conversions = sorted(
+            all_conversions, 
+            key=lambda x: x.get("time", 0), 
+            reverse=True
+        )
+        
+        return sorted_conversions[:limit]
+        
     except Exception as e:
         logging.error(f"Error fetching latest conversions: {e}")
         return []
@@ -142,6 +162,9 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
+# --- TITLE ---
+st.title("Firebase Game Analytics Dashboard")
 
 # Fetch player data
 players_data_path = "PLAYERS"
@@ -227,11 +250,11 @@ else:
 # --- LATEST CONVERSIONS SECTION ---
 st.header("Latest 10 Conversions")
 
-# Fetch the latest 10 conversions
+# Fetch the latest 10 conversions with the fixed function
 latest_conversions = fetch_latest_conversions(10)
 
 if not latest_conversions:
-    st.warning("No conversions found or time field not available. Make sure you've updated your Firebase security rules.")
+    st.warning("No conversions found. Make sure your CONVERSIONS data is properly structured.")
 else:
     # Create DataFrame from the latest conversions data
     conversions_df = pd.DataFrame(latest_conversions)
@@ -239,11 +262,9 @@ else:
     # Format the time to be more readable
     if "time" in conversions_df.columns:
         conversions_df["Formatted_time"] = conversions_df["time"].apply(format_timestamp)
-        # Sort by time
-        conversions_df = conversions_df.sort_values(by="time", ascending=False)
     
-    # Display the conversion information
-    display_cols = ["conversion_id", "Formatted_time", "goal", "source"]
+    # Display the conversion information with all relevant fields
+    display_cols = ["user_id", "conversion_id", "Formatted_time", "goal", "source"]
     display_cols = [col for col in display_cols if col in conversions_df.columns]
     
     st.dataframe(conversions_df[display_cols])
