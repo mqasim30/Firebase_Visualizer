@@ -1,5 +1,4 @@
 import os
-import json
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -8,7 +7,7 @@ from firebase_admin import credentials, db
 import pandas as pd
 import streamlit as st
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -133,11 +132,14 @@ def fetch_latest_conversions(limit=10):
         logging.error(f"Error fetching conversions: {e}")
         return []
 
-# Format timestamp to human-readable date
 def format_timestamp(timestamp):
     if pd.notna(timestamp) and timestamp != 0:
         try:
-            return datetime.fromtimestamp(timestamp/1000).strftime('%Y-%m-%d %H:%M:%S')
+            # Convert to datetime
+            dt = datetime.fromtimestamp(timestamp/1000)
+            # Add 5 hours to adjust for timezone
+            dt = dt + timedelta(hours=5)
+            return dt.strftime('%Y-%m-%d %H:%M:%S')
         except (ValueError, TypeError):
             return "Invalid date"
     return "Not available"
