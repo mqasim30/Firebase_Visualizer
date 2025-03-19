@@ -10,6 +10,7 @@ import streamlit as st
 import logging
 from streamlit_autorefresh import st_autorefresh
 import ipaddress
+from datetime import datetime
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -83,6 +84,25 @@ def fetch_data(data_path):
         logging.error("Error fetching data from %s: %s", data_path, e)
         return None
 
+# New function to fetch the latest 10 players using the index on Install_time
+@st.cache_data(ttl=60, show_spinner=False)
+def fetch_latest_players(limit=10):
+    try:
+        ref = database.reference("PLAYERS")
+        # Order by Install_time descending and limit to last 10 entries
+        # This will utilize the .indexOn rule we set up
+        query = ref.order_by_child("Install_time").limit_to_last(limit)
+        data = query.get()
+        logging.info(f"Fetched latest {limit} players based on Install_time")
+        if data:
+            # Convert to list of records with UID included
+            latest_players = [{"uid": uid, **record} for uid, record in data.items() if isinstance(record, dict)]
+            return latest_players
+        return []
+    except Exception as e:
+        logging.error(f"Error fetching latest players: {e}")
+        return []
+
 def compute_stats(df):
     stats = {}
     if "Wins" in df.columns:
@@ -136,6 +156,15 @@ def merge_on_common_ip(players_df, tracking_df):
         return merged_df
     else:
         return pd.DataFrame()
+
+# Format timestamp to human-readable date
+def format_timestamp(timestamp):
+    if pd.notna(timestamp) and timestamp != 0:
+        try:
+            return datetime.fromtimestamp(timestamp/1000).strftime('%Y-%m-%d %H:%M:%S')
+        except (ValueError, TypeError):
+            return "Invalid date"
+    return "Not available"
 
 # Set up auto-refresh every 1 minute
 st_autorefresh(interval=60000, limit=100, key="players_refresh")
@@ -242,3 +271,28 @@ else:
             st.write("Geo field not available in TRACKING.")
     else:
         st.write("No tracking records found in the TRACKING branch.")
+
+# --- Latest Players Section (New) ---
+st.header("Latest 10 Players")
+st.write("This section shows the 10 most recently installed players based on Install_time")
+
+# Fetch the latest 10 players using our new function
+latest_players = fetch_latest_players(10)
+
+if not latest_players:
+    st.write("No recent players found or Install_time field not available")
+else:
+    # Create DataFrame from the latest players data
+    latest_df = pd.DataFrame(latest_players)
+    
+    # Format the Install_time to be more readable
+    if "Install_time" in latest_df.columns:
+        latest_df["Formatted_Install_time"] = latest_df["Install_time"].apply(format_timestamp)
+    
+    # Display key information in a clean table
+    display_cols = ["uid", "Formatted_Install_time", "Source", "Geo", "IP", "Wins", "Goal", "Impressions", "Ad_Revenue"]
+    display_cols = [col for col in display_cols if col in latest_df.columns]
+    
+    st.subheader("Latest Players Information")
+    st.dataframe(latest_df[display_cols].sort_values(by="Install_time", ascending=False))
+    
