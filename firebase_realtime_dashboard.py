@@ -173,6 +173,114 @@ def fetch_latest_conversions_with_player_data(limit=10):
         logging.error(f"Error fetching conversions with player data: {e}")
         return []
 
+# Function to fetch the latest 10 IAP purchases efficiently with player data
+def fetch_latest_iap_with_player_data(limit=10):
+    try:
+        # Directly get the entire IAP branch
+        iap_ref = database.reference("IAP")
+        all_data = iap_ref.get()
+        
+        # Add debug logging to see the raw data structure
+        logging.info("Raw IAP data structure: %s", str(all_data)[:200] + "..." if all_data else "None")
+        
+        if not all_data or not isinstance(all_data, dict):
+            logging.warning("No IAP data found or invalid data structure")
+            return []
+            
+        # Flatten the nested structure
+        all_iaps = []
+        
+        # Process the nested structure - from the screenshot we can see the exact structure
+        for user_id, user_data in all_data.items():
+            if not isinstance(user_data, dict):
+                logging.warning(f"User data for {user_id} is not a dict: {type(user_data)}")
+                continue
+                
+            # Debug log to see user_data structure
+            logging.info(f"User {user_id} has {len(user_data)} IAP records")
+                
+            for purchase_id, purchase_data in user_data.items():
+                if not isinstance(purchase_data, dict):
+                    logging.warning(f"Purchase data for {purchase_id} is not a dict: {type(purchase_data)}")
+                    continue
+                
+                # Debug log to see purchase_data structure
+                logging.info(f"Purchase {purchase_id} data: {purchase_data}")
+                    
+                # Create a record with all the relevant fields
+                iap = {
+                    "user_id": user_id,
+                    "purchase_id": purchase_id,
+                    **purchase_data  # This adds name, price, timeBought
+                }
+                all_iaps.append(iap)
+        
+        logging.info(f"Total IAP records collected: {len(all_iaps)}")
+        
+        if not all_iaps:
+            logging.warning("No IAP records were collected after processing the data")
+            return []
+        
+        # Sort by timeBought (descending) and take the latest ones
+        try:
+            sorted_iaps = sorted(
+                all_iaps, 
+                key=lambda x: x.get("timeBought", 0), 
+                reverse=True
+            )
+            logging.info(f"Successfully sorted {len(sorted_iaps)} IAP records")
+        except Exception as e:
+            logging.error(f"Error sorting IAP data: {e}")
+            # If sorting fails, just use the unsorted list
+            sorted_iaps = all_iaps
+        
+        # Take only the requested number
+        latest_iaps = sorted_iaps[:limit]
+        logging.info(f"Selected {len(latest_iaps)} latest IAP records")
+        
+        # Enhance each IAP with player data
+        enhanced_iaps = []
+        for iap in latest_iaps:
+            user_id = iap.get("user_id")
+            
+            # Fetch player data directly using the user_id
+            player_data = fetch_player(user_id)
+            
+            if player_data:
+                # Add player data as prefixed fields (to avoid name collisions)
+                player_fields = {
+                    "player_geo": player_data.get("Geo", ""),
+                    "player_source": player_data.get("Source", ""),
+                    "player_ip": player_data.get("IP", ""),
+                    "player_wins": player_data.get("Wins", 0),
+                    "player_impressions": player_data.get("Impressions", 0),
+                    "player_ad_revenue": player_data.get("Ad_Revenue", 0),
+                    "player_install_time": player_data.get("Install_time", 0),
+                    "player_last_impression_time": player_data.get("Last_Impression_time", 0)
+                }
+                
+                # Combine IAP and player data
+                enhanced_iap = {**iap, **player_fields}
+                enhanced_iaps.append(enhanced_iap)
+            else:
+                # If player data not found, just use the IAP data
+                enhanced_iaps.append(iap)
+        
+        logging.info(f"Returning {len(enhanced_iaps)} enhanced IAP records")
+        
+        # Debug: Log the first record to check its structure
+        if enhanced_iaps:
+            logging.info(f"Sample IAP record: {enhanced_iaps[0]}")
+        
+        return enhanced_iaps
+        
+    except Exception as e:
+        logging.error(f"Error fetching IAP purchases with player data: {e}")
+        # Add more detailed error information including trace
+        import traceback
+        logging.error(f"Traceback: {traceback.format_exc()}")
+        return []
+
 def format_timestamp(timestamp):
     if pd.notna(timestamp) and timestamp != 0:
         try:
@@ -243,3 +351,38 @@ else:
     display_cols = [col for col in display_cols if col in conversions_df.columns]
     
     st.dataframe(conversions_df[display_cols])
+
+# --- LATEST IAP PURCHASES SECTION WITH PLAYER DATA ---
+st.header("Latest 10 In-App Purchases (With Player Data)")
+
+with st.spinner("Loading latest IAP purchases with player data..."):
+    latest_iaps = fetch_latest_iap_with_player_data(10)
+
+# Add debug display to see if any data was returned
+st.write(f"Found {len(latest_iaps)} IAP records")
+
+if not latest_iaps:
+    st.warning("No IAP purchases found. Make sure your IAP data is properly structured.")
+else:
+    # Create DataFrame from the enhanced IAP data
+    iaps_df = pd.DataFrame(latest_iaps)
+    
+    # Format the timestamps to be more readable
+    if "timeBought" in iaps_df.columns:
+        iaps_df["Formatted_time_bought"] = iaps_df["timeBought"].apply(format_timestamp)
+    
+    if "player_install_time" in iaps_df.columns:
+        iaps_df["Formatted_install_time"] = iaps_df["player_install_time"].apply(format_timestamp)
+        
+    if "player_last_impression_time" in iaps_df.columns:
+        iaps_df["Formatted_last_impression_time"] = iaps_df["player_last_impression_time"].apply(format_timestamp)
+    
+    # Display the IAP information with player data
+    display_cols = [
+        "user_id", "purchase_id", "name", "price", "Formatted_time_bought",
+        "player_source", "player_geo", "player_ip", "player_wins", 
+        "player_impressions", "player_ad_revenue", "Formatted_install_time", "Formatted_last_impression_time"
+    ]
+    display_cols = [col for col in display_cols if col in iaps_df.columns]
+    
+    st.dataframe(iaps_df[display_cols])
