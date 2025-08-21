@@ -204,25 +204,22 @@ def fetch_player(uid):
         logging.error(f"Error fetching player {uid}: {e}")
         return None
 
-# Function to fetch the latest 10 conversions efficiently with player data
+# Fixed function to fetch the latest conversions efficiently
 def fetch_latest_conversions_with_player_data(limit=10):
     try:
-        # Use the indexed "time" field to get latest conversions efficiently
+        # Get all conversions data - this is more efficient than the nested query
         conv_ref = database.reference("CONVERSIONS")
+        all_data = conv_ref.get()
         
-        # Get latest conversions ordered by time (using existing index)
-        query = conv_ref.order_by_child("time").limit_to_last(limit * 3)  # Get 3x more to account for nested structure
-        data = query.get()
-        
-        if not data or not isinstance(data, dict):
+        if not all_data or not isinstance(all_data, dict):
             logging.warning("No conversion data found")
             return []
             
-        # Flatten the nested structure
+        # Flatten the nested structure and collect all conversions
         all_conversions = []
         
         # Process the nested structure
-        for user_id, user_data in data.items():
+        for user_id, user_data in all_data.items():
             if not isinstance(user_data, dict):
                 continue
                 
@@ -238,14 +235,14 @@ def fetch_latest_conversions_with_player_data(limit=10):
                 }
                 all_conversions.append(conversion)
         
-        # Sort by time (descending) and take the latest ones
+        # Sort by time (descending) to get the most recent ones first
         sorted_conversions = sorted(
             all_conversions, 
             key=lambda x: x.get("time", 0), 
             reverse=True
         )
         
-        # Take only the requested number
+        # Take only the requested number of latest conversions
         latest_conversions = sorted_conversions[:limit]
         
         # Enhance each conversion with player data
@@ -277,14 +274,14 @@ def fetch_latest_conversions_with_player_data(limit=10):
                 # If player data not found, just use the conversion data
                 enhanced_conversions.append(conversion)
         
-        logging.info(f"Returning {len(enhanced_conversions)} enhanced conversions")
+        logging.info(f"Returning {len(enhanced_conversions)} enhanced conversions (latest first)")
         
         return enhanced_conversions
         
     except Exception as e:
         logging.error(f"Error fetching conversions with player data: {e}")
         return []
-
+    
 # Function to fetch the latest 10 IAP purchases efficiently with player data
 def fetch_latest_iap_with_player_data(limit=10):
     try:
